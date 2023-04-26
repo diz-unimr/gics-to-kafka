@@ -39,10 +39,13 @@ func (s Server) parseRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Server) checkAuth(w http.ResponseWriter, r *http.Request) bool {
+
 	u, p, ok := r.BasicAuth()
 	if !ok {
 		log.Error("Error parsing basic auth")
-		w.WriteHeader(401)
+		//w.WriteHeader(401)
+		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return false
 	}
 	if u != s.auth.User {
