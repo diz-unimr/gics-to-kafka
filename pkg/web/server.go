@@ -24,7 +24,7 @@ func (s Server) parseRequest(w http.ResponseWriter, r *http.Request) {
 	defer func(Body io.ReadCloser) {
 		err := Body.Close()
 		if err != nil {
-
+			log.WithError(err)
 		}
 	}(r.Body)
 
