@@ -1,0 +1,4 @@
+dev/
+cert/*
+Dockerfile
+.gitlab-ci.yml

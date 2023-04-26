@@ -1,0 +1,22 @@
+app:
+  name: gics-to-fhir
+  log-level: info
+  auth:
+    user:
+    password:
+
+gics:
+  endpoint:
+  auth:
+    user:
+    password:
+
+kafka:
+  bootstrap-servers: localhost:9092
+  security-protocol: ssl
+  ssl:
+    ca-location: /app/cert/kafka-ca.pem
+    certificate-location: /app/cert/app-cert.pem
+    key-location: /app/cert/app-key.pem
+    key-password: private-key-password
+  topic:
