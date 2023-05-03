@@ -10,6 +10,7 @@ gics:
   auth:
     user:
     password:
+  signer-id: "Patienten-ID"
 
 kafka:
   bootstrap-servers: localhost:9092

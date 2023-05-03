@@ -1,0 +1,243 @@
+{
+  "data": {
+    "type": "GICS.SetQcForConsent",
+    "clientId": "gICS_Web",
+    "context": {
+      "qc": {
+        "qcPassed": true,
+        "type": "invalidated",
+        "inspector": "003e3f40-f3ad-44e8-9208-8a08ae474325",
+        "comment": "ddd"
+      }
+    },
+    "consentKey": {
+      "consentTemplateKey": {
+        "domainName": "MII",
+        "name": "Vollst�ndiger Widerruf (kompatibel zu Patienteneinwilligung MII 1.6d)",
+        "version": "2.0.a"
+      },
+      "signerIds": [
+        {
+          "fhirID": "63a9b1bc-6398-4735-8d06-5f971d60ca89",
+          "idType": "Pseudonym",
+          "id": "sdsdsd",
+          "creationDate": "2023-04-26 06:37:55",
+          "orderNumber": 1
+        }
+      ],
+      "consentDate": "2023-04-26 06:37:55"
+    },
+    "previousPolicyStates": [
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "IDAT_erheben",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "Rekontaktierung_Zusatzbefund",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "Rekontaktierung_Verknuepfung_Datenbanken",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "Rekontaktierung_weitere_Studien",
+          "version": "1.1"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "IDAT_bereitstellen_EU_DSGVO_konform",
+          "version": "1.1"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "MDAT_erheben",
+          "version": "1.1"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "MDAT_speichern_verarbeiten",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "IDAT_speichern_verarbeiten",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "Rekontaktierung_Ergebnisse_erheblicher_Bedeutung",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "MDAT_wissenschaftlich_nutzen_EU_DSGVO_konform",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "Rekontaktierung_weitere_Erhebung",
+          "version": "1.1"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "IDAT_zusammenfuehren_Dritte",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "MDAT_zusammenfuehren_Dritte",
+          "version": "1.0"
+        },
+        "value": false
+      }
+    ],
+    "currentPolicyStates": [
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "IDAT_erheben",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "Rekontaktierung_Zusatzbefund",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "Rekontaktierung_Verknuepfung_Datenbanken",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "Rekontaktierung_weitere_Studien",
+          "version": "1.1"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "IDAT_bereitstellen_EU_DSGVO_konform",
+          "version": "1.1"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "MDAT_erheben",
+          "version": "1.1"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "MDAT_speichern_verarbeiten",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "IDAT_speichern_verarbeiten",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "Rekontaktierung_Ergebnisse_erheblicher_Bedeutung",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "MDAT_wissenschaftlich_nutzen_EU_DSGVO_konform",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "Rekontaktierung_weitere_Erhebung",
+          "version": "1.1"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "IDAT_zusammenfuehren_Dritte",
+          "version": "1.0"
+        },
+        "value": false
+      },
+      {
+        "key": {
+          "domainName": "MII",
+          "name": "MDAT_zusammenfuehren_Dritte",
+          "version": "1.0"
+        },
+        "value": false
+      }
+    ]
+  }
+}

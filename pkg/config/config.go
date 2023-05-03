@@ -34,6 +34,7 @@ type Ssl struct {
 type Gics struct {
 	Endpoint string `mapstructure:"endpoint"`
 	Auth     Auth   `mapstructure:"auth"`
+	SignerId string `mapstructure:"signer-id"`
 }
 
 type Auth struct {
