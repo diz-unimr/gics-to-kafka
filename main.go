@@ -12,7 +12,7 @@ func main() {
 	appConfig := loadConfig()
 	configureLogger(appConfig.App)
 
-	server := client.NewServer(appConfig.App)
+	server := client.NewServer(appConfig)
 	server.Run()
 }
 
