@@ -18,10 +18,10 @@ type App struct {
 }
 
 type Kafka struct {
-	BootstrapServers string   `mapstructure:"bootstrap-servers"`
-	InputTopics      []string `mapstructure:"input-topics"`
-	SecurityProtocol string   `mapstructure:"security-protocol"`
-	Ssl              Ssl      `mapstructure:"ssl"`
+	BootstrapServers string `mapstructure:"bootstrap-servers"`
+	OutputTopics     string `mapstructure:"output-topic"`
+	SecurityProtocol string `mapstructure:"security-protocol"`
+	Ssl              Ssl    `mapstructure:"ssl"`
 }
 
 type Ssl struct {

@@ -20,4 +20,4 @@ kafka:
     certificate-location: /app/cert/app-cert.pem
     key-location: /app/cert/app-key.pem
     key-password: private-key-password
-  topic:
+  output-topic: consent-fhir
