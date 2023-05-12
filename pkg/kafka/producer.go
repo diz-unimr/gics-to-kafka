@@ -1,7 +1,7 @@
 package kafka
 
 import (
-	"gics-to-fhir/pkg/config"
+	"gics-to-kafka/pkg/config"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	log "github.com/sirupsen/logrus"
 	"os"

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"gics-to-fhir/pkg/config"
-	client "gics-to-fhir/pkg/web"
+	"gics-to-kafka/pkg/config"
+	client "gics-to-kafka/pkg/web"
 	log "github.com/sirupsen/logrus"
 	"os"
 )

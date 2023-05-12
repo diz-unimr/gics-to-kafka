@@ -1,4 +1,4 @@
-module gics-to-fhir
+module gics-to-kafka
 
 go 1.19
 
