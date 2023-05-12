@@ -18,6 +18,6 @@ FROM alpine:3.16 as run
 RUN apk add --no-progress --no-cache tzdata
 
 WORKDIR /app/
-COPY --from=build /app/gics-to-fhir .
+COPY --from=build /app/gics-to-kafka .
 COPY --from=build /app/app.yml .
-ENTRYPOINT ["/app/gics-to-fhir"]
+ENTRYPOINT ["/app/gics-to-kafka"]
