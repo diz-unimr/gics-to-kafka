@@ -1,15 +1,13 @@
 app:
   name: gics-to-kafka
   log-level: info
-  auth:
-    user:
-    password:
+  http:
+    auth:
+      user:
+      password:
+    port: 8080
 
 gics:
-  endpoint:
-  auth:
-    user:
-    password:
   signer-id: "Patienten-ID"
 
 kafka:

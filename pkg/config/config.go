@@ -11,10 +11,15 @@ type AppConfig struct {
 	Gics  Gics  `mapstructure:"gics"`
 }
 
+type Http struct {
+	Auth Auth   `mapstructure:"auth"`
+	Port string `mapstructure:"port"`
+}
+
 type App struct {
 	Name     string `mapstructure:"name"`
 	LogLevel string `mapstructure:"log-level"`
-	Auth     Auth   `mapstructure:"auth"`
+	Http     Http   `mapstructure:"http"`
 }
 
 type Kafka struct {
@@ -32,8 +37,6 @@ type Ssl struct {
 }
 
 type Gics struct {
-	Endpoint string `mapstructure:"endpoint"`
-	Auth     Auth   `mapstructure:"auth"`
 	SignerId string `mapstructure:"signer-id"`
 }
 

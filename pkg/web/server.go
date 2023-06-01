@@ -62,7 +62,7 @@ type Server struct {
 
 func (s Server) Run() {
 	http.HandleFunc("/", s.handleRequest)
-	log.Fatal(http.ListenAndServe(":10000", nil))
+	log.Fatal(http.ListenAndServe(":"+s.config.App.Http.Port, nil))
 }
 
 func NewServer(config config.AppConfig) *Server {
@@ -118,9 +118,6 @@ func (s Server) parseRequest(w http.ResponseWriter, r *http.Request) {
 	// TODO error handling
 	w.WriteHeader(200)
 
-	//listener := make(chan cKafka.Event, 1)
-	//go s.producer.Send(d, createListener())
-
 	s.sendNotification(*signerId, n.CreatedAt, d, nil)
 }
 
@@ -133,12 +130,12 @@ func (s Server) checkAuth(w http.ResponseWriter, r *http.Request) bool {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return false
 	}
-	if u != s.config.App.Auth.User {
+	if u != s.config.App.Http.Auth.User {
 		log.WithField("username", u).Error("Username provided is incorrect")
 		w.WriteHeader(401)
 		return false
 	}
-	if p != s.config.App.Auth.Password {
+	if p != s.config.App.Http.Auth.Password {
 		log.WithField("password", p).Error("Password provided is incorrect")
 		w.WriteHeader(401)
 		return false
