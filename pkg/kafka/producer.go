@@ -8,6 +8,10 @@ import (
 	"time"
 )
 
+type Producer interface {
+	Send(key []byte, timestamp time.Time, msg []byte, deliveryChan chan kafka.Event)
+}
+
 type NotificationProducer struct {
 	Producer *kafka.Producer
 	Topic    string
@@ -44,12 +48,12 @@ func (p *NotificationProducer) Send(key []byte, timestamp time.Time, msg []byte,
 	}, deliveryChan)
 	if err != nil {
 		if err.(kafka.Error).Code() == kafka.ErrQueueFull {
-			// Producer queue is full, wait 1s for messages
+			// producer queue is full, wait 1s for messages
 			// to be delivered then try again.
 			time.Sleep(time.Second)
 			p.Send(key, timestamp, msg, deliveryChan)
 		}
+		deliveryChan <- kafka.Error{}
 	}
-
-	<-deliveryChan
+	//<-deliveryChan
 }

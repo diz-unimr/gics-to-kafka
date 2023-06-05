@@ -3,13 +3,13 @@ package web
 import (
 	"crypto"
 	"encoding/json"
-	fmt "fmt"
+	"fmt"
 	"gics-to-kafka/pkg/config"
 	"gics-to-kafka/pkg/kafka"
 	cKafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/exp/slices"
-	"io"
 	"net/http"
 	"time"
 )
@@ -57,99 +57,90 @@ type SignerId struct {
 
 type Server struct {
 	config   config.AppConfig
-	producer *kafka.NotificationProducer
+	producer kafka.Producer
 }
 
 func (s Server) Run() {
-	http.HandleFunc("/", s.handleRequest)
-	log.Fatal(http.ListenAndServe(":"+s.config.App.Http.Port, nil))
+	r := s.setupRouter()
+
+	log.Fatal(r.Run(":" + s.config.App.Http.Port))
+}
+
+func (s Server) setupRouter() *gin.Engine {
+	r := gin.Default()
+	_ = r.SetTrustedProxies(nil)
+	r.Use(gin.Recovery())
+	r.Use(config.LoggingMiddleware())
+
+	r.POST("/notification", gin.BasicAuth(gin.Accounts{
+		s.config.App.Http.Auth.User: s.config.App.Http.Auth.Password,
+	}), s.handleNotification)
+
+	return r
 }
 
 func NewServer(config config.AppConfig) *Server {
 	return &Server{config: config, producer: kafka.NewProducer(config.Kafka)}
 }
 
-func (s Server) parseRequest(w http.ResponseWriter, r *http.Request) {
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			log.WithError(err)
-		}
-	}(r.Body)
+func (s Server) handleNotification(c *gin.Context) {
 
-	b, err := io.ReadAll(r.Body)
-	if isParseError(err, w) {
-		return
-	}
-
-	// unmarshall
+	// bind to struct
 	var n Notification
-	err = json.Unmarshal(b, &n)
-	if isParseError(err, w) {
+	if err := c.ShouldBindJSON(&n); err != nil {
 		log.WithError(err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": err.Error(),
+		})
 		return
 	}
 
-	log.WithFields(log.Fields{"clientId": *n.ClientId, "type": *n.Type, "createdAt": *n.CreatedAt}).
+	log.WithFields(log.Fields{"clientId": n.ClientId, "type": n.Type, "createdAt": n.CreatedAt}).
 		Debug("Notification received")
-	log.WithField("payload", string(b)).Trace("Received")
+
+	log.WithField("payload", n).Trace("Received")
 
 	if n.ClientId == nil || *n.ClientId != "gICS_Web" {
 		log.Error("Invalid or missing 'clientId' property. Should be 'gICS_Web'")
-		http.Error(w, "Invalid or missing clientId", http.StatusNotFound)
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Invalid or missing clientId"})
 		return
 	}
 
 	var d NotificationData
-	err = json.Unmarshal([]byte(*n.Data), &d)
-	if isParseError(err, w) {
+	if err := json.Unmarshal([]byte(*n.Data), &d); err != nil {
+		log.WithError(err).Error("Failed to parse request body")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to parse request body"})
 		return
 	}
 
 	// check signer ids
 	signerId := d.SignerId(s.config.Gics.SignerId)
 	if signerId == nil {
-		// TODO is gICS using the response header somehow?
 		log.WithField("signerId", s.config.Gics.SignerId).Error("Request ist missing signerId type")
-		http.Error(w, "Failed to parse signerId", http.StatusBadRequest)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to parse signerId",
+		})
 		return
 	}
 
-	// TODO error handling
-	w.WriteHeader(200)
+	listener := make(chan cKafka.Event, 1)
+	s.sendNotification(*signerId, n.CreatedAt, d, listener)
 
-	s.sendNotification(*signerId, n.CreatedAt, d, nil)
-}
-
-func (s Server) checkAuth(w http.ResponseWriter, r *http.Request) bool {
-
-	u, p, ok := r.BasicAuth()
-	if !ok {
-		log.Error("Error parsing basic auth")
-		w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return false
+	e := <-listener
+	switch ev := e.(type) {
+	case cKafka.Error:
+		log.WithError(ev).
+			Error("Failed to send notification to Kafka")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to send notification to Kafka",
+		})
+	case *cKafka.Message:
+		c.Status(http.StatusCreated)
+	default:
+		log.WithField("error", e).Error("Unexpected delivery response")
 	}
-	if u != s.config.App.Http.Auth.User {
-		log.WithField("username", u).Error("Username provided is incorrect")
-		w.WriteHeader(401)
-		return false
-	}
-	if p != s.config.App.Http.Auth.Password {
-		log.WithField("password", p).Error("Password provided is incorrect")
-		w.WriteHeader(401)
-		return false
-	}
-
-	return true
-}
-
-func (s Server) handleRequest(w http.ResponseWriter, r *http.Request) {
-	if !s.checkAuth(w, r) {
-		return
-	}
-
-	s.parseRequest(w, r)
 }
 
 func (d NotificationData) SignerId(key string) *string {
@@ -166,7 +157,7 @@ func (s Server) sendNotification(signerId string, created *string, data Notifica
 	loc, _ := time.LoadLocation("Europe/Berlin")
 	dt, err := time.ParseInLocation("2006-01-02T15:04:05", *created, loc)
 	if err != nil {
-		deliveryChan <- nil
+		deliveryChan <- NewError("Unable to parse created date" + *created)
 	}
 	msg, _ := json.Marshal(data)
 
@@ -180,4 +171,16 @@ func hash(values ...string) string {
 	}
 	sum := h.Sum(nil)
 	return fmt.Sprintf("%x\n", sum)
+}
+
+type Error struct {
+	Error string
+}
+
+func NewError(err string) Error {
+	return Error{Error: err}
+}
+
+func (e Error) String() string {
+	return e.Error
 }
