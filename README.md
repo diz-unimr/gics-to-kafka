@@ -1,4 +1,4 @@
-gics-to-kafka
+# gics-to-kafka
 
 > Receive gICS notifications and send them to a Kafka topic
 
@@ -33,7 +33,7 @@ Upper case env variables are supported as well as underscores (`_`) instead of `
 Example via `docker compose`:
 ```yml
 gics-to-kafka:
-    image: registry.diz.uni-marburg.de/etl/streams/gics-to-kafka:v1.0.0
+    image: registry.diz.uni-marburg.de/etl/streams/gics-to-kafka:v1.1.0
     restart: unless-stopped
     environment:
       APP_NAME: gics-to-kafka
@@ -43,7 +43,7 @@ gics-to-kafka:
       GICS_SIGNER_ID: Patienten-ID
       KAFKA_BOOTSTRAP_SERVERS: kafka:19092
       KAFKA_SECURITY_PROTOCOL: SSL
-      KAFKA_OUTPUT_TOPIC: consent-fhir-idat
+      KAFKA_OUTPUT_TOPIC: gics-noti-idat
     volumes:
      - ./cert/ca-cert:/app/cert/kafka-ca.pem:ro
      - ./cert/gics-to-kafka.pem:/app/cert/app-cert.pem:ro
