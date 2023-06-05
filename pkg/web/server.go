@@ -57,23 +57,25 @@ type SignerId struct {
 
 type Server struct {
 	config   config.AppConfig
-	producer *kafka.NotificationProducer
+	producer kafka.Producer
 }
 
 func (s Server) Run() {
-	r := setupRouter()
+	r := s.setupRouter()
 
-	r.POST("/notification", gin.BasicAuth(gin.Accounts{
-		s.config.App.Http.Auth.User: s.config.App.Http.Auth.Password,
-	}), s.handleNotification)
 	log.Fatal(r.Run(":" + s.config.App.Http.Port))
 }
 
-func setupRouter() *gin.Engine {
+func (s Server) setupRouter() *gin.Engine {
 	r := gin.Default()
 	_ = r.SetTrustedProxies(nil)
 	r.Use(gin.Recovery())
 	r.Use(config.LoggingMiddleware())
+
+	r.POST("/notification", gin.BasicAuth(gin.Accounts{
+		s.config.App.Http.Auth.User: s.config.App.Http.Auth.Password,
+	}), s.handleNotification)
+
 	return r
 }
 
@@ -93,7 +95,7 @@ func (s Server) handleNotification(c *gin.Context) {
 		return
 	}
 
-	log.WithFields(log.Fields{"clientId": *n.ClientId, "type": *n.Type, "createdAt": *n.CreatedAt}).
+	log.WithFields(log.Fields{"clientId": n.ClientId, "type": n.Type, "createdAt": n.CreatedAt}).
 		Debug("Notification received")
 
 	log.WithField("payload", n).Trace("Received")
@@ -123,7 +125,22 @@ func (s Server) handleNotification(c *gin.Context) {
 		return
 	}
 
-	s.sendNotification(*signerId, n.CreatedAt, d, nil)
+	listener := make(chan cKafka.Event, 1)
+	s.sendNotification(*signerId, n.CreatedAt, d, listener)
+
+	e := <-listener
+	switch ev := e.(type) {
+	case cKafka.Error:
+		log.WithError(ev).
+			Error("Failed to send notification to Kafka")
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Failed to send notification to Kafka",
+		})
+	case *cKafka.Message:
+		c.Status(http.StatusCreated)
+	default:
+		log.WithField("error", e).Error("Unexpected delivery response")
+	}
 }
 
 func (d NotificationData) SignerId(key string) *string {
@@ -140,7 +157,7 @@ func (s Server) sendNotification(signerId string, created *string, data Notifica
 	loc, _ := time.LoadLocation("Europe/Berlin")
 	dt, err := time.ParseInLocation("2006-01-02T15:04:05", *created, loc)
 	if err != nil {
-		deliveryChan <- nil
+		deliveryChan <- NewError("Unable to parse created date" + *created)
 	}
 	msg, _ := json.Marshal(data)
 
@@ -154,4 +171,16 @@ func hash(values ...string) string {
 	}
 	sum := h.Sum(nil)
 	return fmt.Sprintf("%x\n", sum)
+}
+
+type Error struct {
+	Error string
+}
+
+func NewError(err string) Error {
+	return Error{Error: err}
+}
+
+func (e Error) String() string {
+	return e.Error
 }
