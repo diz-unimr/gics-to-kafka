@@ -11,8 +11,8 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  release:
-    name: Release
+  semantic-release:
+    name: Semantic release
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -31,6 +31,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.SEMANTIC_RELEASE_TOKEN }}
 
   docker-build-and-push:
+    name: Docker build & publish
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -52,6 +53,10 @@ jobs:
         uses: docker/metadata-action@v4
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            # set latest tag for default branch
+            type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v4
