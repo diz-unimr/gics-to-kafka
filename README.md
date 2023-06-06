@@ -1,5 +1,5 @@
 # gics-to-kafka
-
+[![Go Coverage](https://github.com/USER/REPO/wiki/coverage.svg)](https://raw.githack.com/wiki/USER/REPO/coverage.html)
 > Receive gICS notifications and send them to a Kafka topic
 
 This is a minimal Kafka producer which exposes a single HTTP endpoint to receive messages via 
