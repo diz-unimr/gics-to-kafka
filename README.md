@@ -1,5 +1,5 @@
 # gics-to-kafka
-![go](https://github.com/diz-unimr/gics-to-kafka/actions/workflows/go.yml/badge.svg) ![docker](https://github.com/diz-unimr/gics-to-kafka/actions/workflows/docker.yml/badge.svg) [![codecov](https://codecov.io/gh/diz-unimr/gics-to-kafka/branch/main/graph/badge.svg?token=D66XMZ5ALR)](https://codecov.io/gh/diz-unimr/gics-to-kafka)
+![go](https://github.com/diz-unimr/gics-to-kafka/actions/workflows/build.yml/badge.svg) ![docker](https://github.com/diz-unimr/gics-to-kafka/actions/workflows/release.yml/badge.svg) [![codecov](https://codecov.io/gh/diz-unimr/gics-to-kafka/branch/main/graph/badge.svg?token=D66XMZ5ALR)](https://codecov.io/gh/diz-unimr/gics-to-kafka)
 > Receive gICS notifications and send them to a Kafka topic
 
 This is a minimal Kafka producer which exposes a single HTTP endpoint to receive messages via 
