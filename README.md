@@ -33,7 +33,7 @@ Upper case env variables are supported as well as underscores (`_`) instead of `
 Example via `docker compose`:
 ```yml
 gics-to-kafka:
-    image: registry.diz.uni-marburg.de/etl/streams/gics-to-kafka:v1.1.0
+    image: ghcr.io/diz-unimr/gics-to-kafka:latest
     restart: unless-stopped
     environment:
       APP_NAME: gics-to-kafka
@@ -43,7 +43,7 @@ gics-to-kafka:
       GICS_SIGNER_ID: Patienten-ID
       KAFKA_BOOTSTRAP_SERVERS: kafka:19092
       KAFKA_SECURITY_PROTOCOL: SSL
-      KAFKA_OUTPUT_TOPIC: gics-noti-idat
+      KAFKA_OUTPUT_TOPIC: gics-notification
     volumes:
      - ./cert/ca-cert:/app/cert/kafka-ca.pem:ro
      - ./cert/gics-to-kafka.pem:/app/cert/app-cert.pem:ro
@@ -52,3 +52,4 @@ gics-to-kafka:
 
 # License
 
+[AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)
