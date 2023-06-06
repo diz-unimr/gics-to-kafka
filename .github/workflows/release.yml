@@ -5,6 +5,9 @@ on:
     workflows: ["build"]
     branches: main
     types: [completed]
+  push:
+    tags:
+      - '**'
 
 env:
   REGISTRY: ghcr.io
@@ -17,7 +20,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
-    if: ${{ github.event_name != 'pull_request' }}
+    # ignore tags
+    if: ${{ github.event_name != 'pull_request' && contains(github.ref, '/tags/') != true }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
