@@ -1,4 +1,4 @@
-name: Go
+name: Build and test
 
 on:
   push:
@@ -35,19 +35,6 @@ jobs:
 
       - name: build
         run: go build -v ./...
-#      - name: test
-#        run: go test -v ./...
-
-#      - name: update coverage report
-#        uses: ncruces/go-coverage-report@v0
-#        with:
-#          report: 'true'
-#          chart: 'true'
-#          amend: 'false'
-#        if: |
-#          matrix.os == 'ubuntu-latest' &&
-#          github.event_name == 'push'
-#        continue-on-error: true
       - name: test
         run: go test -gcflags=-l -v  -coverprofile=coverage.txt -covermode=atomic ./...
 
