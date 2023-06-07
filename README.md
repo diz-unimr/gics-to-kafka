@@ -5,6 +5,10 @@
 This is a minimal Kafka producer which exposes a single HTTP endpoint to receive messages via 
 the gICS notifications service (connectionType: HTTP) and sends them to a Kafka topic.
 
+## HTTP Endpoint
+
+The `POST` endpoint for receiving notifications is: `/notification`
+
 ## Configuration properties
 
 | Name                             | Default                | Description                             |
@@ -26,7 +30,49 @@ the gICS notifications service (connectionType: HTTP) and sends them to a Kafka 
 ### Environment variables
 
 Override configuration properties by providing environment variables with their respective names.
-Upper case env variables are supported as well as underscores (`_`) instead of `.` and `-`. 
+Upper case env variables are supported as well as underscores (`_`) instead of `.` and `-`.
+
+## Configure gICS
+
+In order to receive notifications from gICS, the notification service has to be enabled and configured accordingly.
+The following SQL script can be used to update the `configuration` table in the `notification_service` database:
+
+```sql
+USE `notification_service`;
+UPDATE `configuration` SET `value` = 
+'<org.emau.icmvc.ttp.notification.service.model.config.NotificationConfig>
+    <consumerConfigs>
+        <param>
+            <key>HTTPConsumer</key>
+            <value class="org.emau.icmvc.ttp.notification.service.model.config.ConsumerConfig">
+                <connectionType>HTTP</connectionType>
+                <messageTypes>
+                    <string>*</string>
+                </messageTypes>
+                <excludeClientIdFilter
+                    class="set">
+                    <string>E-PIX_Web</string>
+                </excludeClientIdFilter>
+                <parameter>
+                    <param>
+                        <key>url</key>
+                        <value>http://gics-to-kafka:8080/notification</value>
+                    </param>
+                    <param>
+                        <key>username</key>
+                        <value>test</value>
+                    </param>
+                    <param>
+                        <key>password</key>
+                        <value>test</value>
+                    </param>
+                </parameter>
+            </value>
+        </param>
+    </consumerConfigs>
+</org.emau.icmvc.ttp.notification.service.model.config.NotificationConfig>'
+WHERE `configKey` = 'notification.config';
+```
 
 # Deployment
 
