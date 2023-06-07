@@ -34,7 +34,7 @@ func NewProducer(config config.Kafka) *NotificationProducer {
 
 	return &NotificationProducer{
 		Producer: p,
-		Topic:    config.OutputTopics,
+		Topic:    config.OutputTopic,
 	}
 }
 

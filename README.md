@@ -17,7 +17,7 @@ the gICS notifications service (connectionType: HTTP) and sends them to a Kafka 
 | `gics.signer-id`                 | Patienten-ID           | Target consent signerId                 |
 | `kafka.bootstrap-servers`        | localhost:9092         | Kafka brokers                           |
 | `kafka.security-protocol`        | ssl                    | Kafka communication protocol            |
-| `kafka.output-topic`             | consent-fhir           | Kafka topic to produce to               |
+| `kafka.output-topic`             | gics-notification      | Kafka topic to produce to               |
 | `kafka.ssl.ca-location`          | /app/cert/kafka-ca.pem | Kafka CA certificate location           |
 | `kafka.ssl.certificate-location` | /app/cert/app-cert.pem | Client certificate location             |
 | `kafka.ssl.key-location`         | /app/cert/app-key.pem  | Client key location                     |

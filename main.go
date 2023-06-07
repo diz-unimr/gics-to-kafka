@@ -2,7 +2,7 @@ package main
 
 import (
 	"gics-to-kafka/pkg/config"
-	client "gics-to-kafka/pkg/web"
+	"gics-to-kafka/pkg/web"
 	log "github.com/sirupsen/logrus"
 	"os"
 )
@@ -12,7 +12,7 @@ func main() {
 	appConfig := loadConfig()
 	configureLogger(appConfig.App)
 
-	server := client.NewServer(appConfig)
+	server := web.NewServer(appConfig)
 	server.Run()
 }
 
