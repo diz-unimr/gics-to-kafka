@@ -63,14 +63,18 @@ type Server struct {
 func (s Server) Run() {
 	r := s.setupRouter()
 
+	log.WithField("port", s.config.App.Http.Port).Info("Starting server")
+	for _, v := range r.Routes() {
+		log.WithFields(log.Fields{"path": v.Path, "method": v.Method}).Info("Route configured")
+	}
+
 	log.Fatal(r.Run(":" + s.config.App.Http.Port))
 }
 
 func (s Server) setupRouter() *gin.Engine {
-	r := gin.Default()
+	r := gin.New()
 	_ = r.SetTrustedProxies(nil)
-	r.Use(gin.Recovery())
-	r.Use(config.LoggingMiddleware())
+	r.Use(config.LoggingMiddleware(), gin.Recovery())
 
 	r.POST("/notification", gin.BasicAuth(gin.Accounts{
 		s.config.App.Http.Auth.User: s.config.App.Http.Auth.Password,
@@ -95,7 +99,7 @@ func (s Server) handleNotification(c *gin.Context) {
 		return
 	}
 
-	log.WithFields(log.Fields{"clientId": n.ClientId, "type": n.Type, "createdAt": n.CreatedAt}).
+	log.WithFields(log.Fields{"clientId": *n.ClientId, "type": *n.Type, "createdAt": *n.CreatedAt}).
 		Debug("Notification received")
 
 	log.WithField("payload", n).Trace("Received")

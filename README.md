@@ -39,6 +39,7 @@ gics-to-kafka:
       APP_NAME: gics-to-kafka
       APP_HTTP_AUTH_USER: test
       APP_HTTP_AUTH_PASSWORD: test
+      APP_HTTP_PORT: 8080
       APP_LOG_LEVEL: info
       GICS_SIGNER_ID: Patienten-ID
       KAFKA_BOOTSTRAP_SERVERS: kafka:19092
