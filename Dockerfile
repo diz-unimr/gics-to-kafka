@@ -20,6 +20,6 @@ RUN apk add --no-progress --no-cache tzdata
 WORKDIR /app/
 COPY --from=build /app/gics-to-kafka .
 COPY --from=build /app/app.yml .
-ARG GIN_MODE=release
+ENV GIN_MODE=release
 
 ENTRYPOINT ["/app/gics-to-kafka"]
