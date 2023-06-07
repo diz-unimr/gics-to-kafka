@@ -26,7 +26,7 @@ func loadConfig() config.AppConfig {
 
 func configureLogger(config config.App) {
 
-	log.SetFormatter(&log.TextFormatter{ForceColors: true})
+	log.SetFormatter(&log.TextFormatter{ForceColors: true, FullTimestamp: true})
 	log.SetOutput(os.Stdout)
 	level, err := log.ParseLevel(config.LogLevel)
 	if err != nil {
