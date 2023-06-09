@@ -20,8 +20,9 @@ func loadConfig() config.AppConfig {
 	c, err := config.LoadConfig(".")
 	if err != nil {
 		log.WithError(err).Fatal("Unable to load config file")
+		os.Exit(1)
 	}
-	return c
+	return *c
 }
 
 func configureLogger(config config.App) {
