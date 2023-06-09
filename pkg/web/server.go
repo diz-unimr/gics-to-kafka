@@ -74,7 +74,7 @@ func (s Server) Run() {
 func (s Server) setupRouter() *gin.Engine {
 	r := gin.New()
 	_ = r.SetTrustedProxies(nil)
-	r.Use(config.LoggingMiddleware(), gin.Recovery())
+	r.Use(config.LoggingMiddleware(nil), gin.Recovery())
 
 	r.POST("/notification", gin.BasicAuth(gin.Accounts{
 		s.config.App.Http.Auth.User: s.config.App.Http.Auth.Password,

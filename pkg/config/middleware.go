@@ -1,13 +1,15 @@
 package config
 
 import (
-	"time"
-
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
+	"time"
 )
 
-func LoggingMiddleware() gin.HandlerFunc {
+func LoggingMiddleware(log *logrus.Logger) gin.HandlerFunc {
+	if log == nil {
+		log = logrus.StandardLogger()
+	}
 	return func(c *gin.Context) {
 		// Starting time request
 		startTime := time.Now()
@@ -33,7 +35,7 @@ func LoggingMiddleware() gin.HandlerFunc {
 		// Request IP
 		clientIP := c.ClientIP()
 
-		entry := log.WithFields(log.Fields{
+		entry := log.WithFields(logrus.Fields{
 			"method":    reqMethod,
 			"uri":       reqUri,
 			"status":    statusCode,
