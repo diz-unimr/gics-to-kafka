@@ -99,6 +99,13 @@ func (s Server) handleNotification(c *gin.Context) {
 		return
 	}
 
+	if n.ClientId == nil || n.Type == nil || n.Data == nil || n.CreatedAt == nil {
+		log.Error("Incomplete notification received")
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Invalid or missing clientId"})
+		return
+	}
+
 	log.WithFields(log.Fields{"clientId": *n.ClientId, "type": *n.Type, "createdAt": *n.CreatedAt}).
 		Debug("Notification received")
 
@@ -161,7 +168,7 @@ func (s Server) sendNotification(signerId string, created *string, data Notifica
 	loc, _ := time.LoadLocation("Europe/Berlin")
 	dt, err := time.ParseInLocation("2006-01-02T15:04:05", *created, loc)
 	if err != nil {
-		deliveryChan <- NewError("Unable to parse created date" + *created)
+		deliveryChan <- Error{"Unable to parse created date" + *created}
 	}
 	msg, _ := json.Marshal(data)
 
@@ -179,10 +186,6 @@ func hash(values ...string) string {
 
 type Error struct {
 	Error string
-}
-
-func NewError(err string) Error {
-	return Error{Error: err}
 }
 
 func (e Error) String() string {
