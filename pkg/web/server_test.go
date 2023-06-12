@@ -27,7 +27,16 @@ func TestTestNotificationHandler(t *testing.T) {
 				"data": "{\"type\":\"GICS.UpdateConsentInUse\",\"clientId\":\"gICS_Web\",\"consentKey\":{\"consentTemplateKey\":{\"domainName\":\"MII\",\"name\":\"Patienteneinwilligung MII\",\"version\":\"1.6.d\"},\"signerIds\":[{\"idType\":\"test\",\"name\":\"2\",\"creationDate\":\"2023-06-05 10:28:42\",\"orderNumber\":1}],\"consentDate\": \"2023-05-02 01:57:27\"}}"
 			}
 		`},
+		{"notificationHandlerInvalidData", 400, `
+			{
+				"type": "GICS.AddConsent",
+				"clientId": "gICS_Web",
+				"createdAt": "2023-06-05T12:09:10.463125126",
+				"data": "test"
+			}
+		`},
 		{"notificationHandlerParseError", 400, "test"},
+		{"notificationHandlerEmptyError", 400, "{}"},
 		{"notificationHandlerInvalidClient", 404, `
 			{
 				"type": "",
@@ -35,6 +44,14 @@ func TestTestNotificationHandler(t *testing.T) {
 				"createdAt": "",
 				"data": "{}"
 	        }
+		`},
+		{"notificationHandlerInvalidSignerId", 400, `
+			{
+				"type": "GICS.AddConsent",
+				"clientId": "gICS_Web",
+				"createdAt": "2023-06-05T12:09:10.463125126",
+				"data": "{\"type\":\"GICS.UpdateConsentInUse\",\"clientId\":\"gICS_Web\",\"consentKey\":{\"consentTemplateKey\":{\"domainName\":\"MII\",\"name\":\"Patienteneinwilligung MII\",\"version\":\"1.6.d\"},\"signerIds\":[{\"idType\":\"invalid\",\"name\":\"2\",\"creationDate\":\"2023-06-05 10:28:42\",\"orderNumber\":1}],\"consentDate\": \"2023-05-02 01:57:27\"}}"
+			}
 		`},
 	}
 
@@ -82,4 +99,9 @@ func notificationHandler(t *testing.T, data TestCase) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, data.statusCode, w.Code)
+}
+
+func TestError_String(t *testing.T) {
+	e := Error{"test"}
+	assert.Equal(t, e.String(), "test")
 }

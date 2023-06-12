@@ -101,8 +101,8 @@ func (s Server) handleNotification(c *gin.Context) {
 
 	if n.ClientId == nil || n.Type == nil || n.Data == nil || n.CreatedAt == nil {
 		log.Error("Incomplete notification received")
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "Invalid or missing clientId"})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "Incomplete notification data"})
 		return
 	}
 
