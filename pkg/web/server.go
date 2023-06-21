@@ -181,7 +181,7 @@ func hash(values ...string) string {
 		h.Write([]byte(v))
 	}
 	sum := h.Sum(nil)
-	return fmt.Sprintf("%x\n", sum)
+	return fmt.Sprintf("%x", sum)
 }
 
 type Error struct {
