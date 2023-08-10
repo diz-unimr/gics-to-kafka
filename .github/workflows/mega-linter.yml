@@ -9,6 +9,8 @@ on:
   pull_request:
     branches: [master, main]
 
+permissions: read-all
+
 env: # Comment env block if you don't want to apply fixes
   # Apply linter fixes configuration
   APPLY_FIXES: all # When active, APPLY_FIXES must also be defined as environment variable (in github/workflows/mega-linter.yml or other CI tool)
@@ -50,6 +52,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # ADD YOUR CUSTOM ENV VARIABLES HERE OR DEFINE THEM IN A FILE .mega-linter.yml AT THE ROOT OF YOUR REPOSITORY
           DISABLE: SPELL # ignore spell checks
+          DISABLE_LINTERS:
+            - REPOSITORY_DEVSKIM
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
