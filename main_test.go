@@ -24,7 +24,6 @@ func TestLoadDefaultConfig(t *testing.T) {
 				CaLocation:          "/app/cert/kafka-ca.pem",
 				CertificateLocation: "/app/cert/app-cert.pem",
 				KeyLocation:         "/app/cert/app-key.pem",
-				KeyPassword:         "private-key-password",
 			},
 		},
 	}
