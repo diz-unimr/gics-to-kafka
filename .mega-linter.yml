@@ -1,1 +1,2 @@
-GO_GOLANGCI_LINT_CLI_LINT_MODE: project
+GO_GOLANGCI_LINT_CLI_LINT_MODE: list_of_files
+GO_REVIVE_ARGUMENTS: -formatter friendly
