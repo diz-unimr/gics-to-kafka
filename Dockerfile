@@ -10,8 +10,7 @@ COPY go.* ./
 RUN go mod download
 
 COPY . .
-RUN go get -d -v
-RUN GOOS=linux GOARCH=amd64 go build -v -tags musl
+RUN go get -d -v && GOOS=linux GOARCH=amd64 go build -v -tags musl
 
 FROM alpine:3.16 as run
 
