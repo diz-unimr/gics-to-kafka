@@ -69,6 +69,10 @@ func (p TestProducer) Send(_ []byte, _ time.Time, _ []byte, deliveryChan chan cK
 	deliveryChan <- &cKafka.Message{}
 }
 
+func (p TestProducer) IsHealthy() bool {
+	return true
+}
+
 func notificationHandler(t *testing.T, data TestCase) {
 	// setup config
 	c := config.AppConfig{
