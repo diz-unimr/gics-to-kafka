@@ -129,8 +129,8 @@ func checkHealth(t *testing.T, data TestCase) {
 		App: config.App{
 			Http: config.Http{
 				Auth: config.Auth{
-					User:     "test",
-					Password: "test",
+					User:     "foo",
+					Password: "bar",
 				},
 			},
 		},
