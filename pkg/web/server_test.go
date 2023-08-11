@@ -5,6 +5,7 @@ import (
 	"gics-to-kafka/pkg/config"
 	cKafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -15,11 +16,12 @@ type TestCase struct {
 	name       string
 	statusCode int
 	body       string
+	producer   *TestProducer
 }
 
 func TestTestNotificationHandler(t *testing.T) {
 	cases := []TestCase{
-		{"notificationHandlerSuccess", 201, `
+		{name: "notificationHandlerSuccess", statusCode: 201, body: `
 			{
 				"type": "GICS.AddConsent",
 				"clientId": "gICS_Web",
@@ -27,7 +29,7 @@ func TestTestNotificationHandler(t *testing.T) {
 				"data": "{\"type\":\"GICS.UpdateConsentInUse\",\"clientId\":\"gICS_Web\",\"consentKey\":{\"consentTemplateKey\":{\"domainName\":\"MII\",\"name\":\"Patienteneinwilligung MII\",\"version\":\"1.6.d\"},\"signerIds\":[{\"idType\":\"test\",\"name\":\"2\",\"creationDate\":\"2023-06-05 10:28:42\",\"orderNumber\":1}],\"consentDate\": \"2023-05-02 01:57:27\"}}"
 			}
 		`},
-		{"notificationHandlerInvalidData", 400, `
+		{name: "notificationHandlerInvalidData", statusCode: 400, body: `
 			{
 				"type": "GICS.AddConsent",
 				"clientId": "gICS_Web",
@@ -35,9 +37,9 @@ func TestTestNotificationHandler(t *testing.T) {
 				"data": "test"
 			}
 		`},
-		{"notificationHandlerParseError", 400, "test"},
-		{"notificationHandlerEmptyError", 400, "{}"},
-		{"notificationHandlerInvalidClient", 404, `
+		{name: "notificationHandlerParseError", statusCode: 400, body: "test"},
+		{name: "notificationHandlerEmptyError", statusCode: 400, body: "{}"},
+		{name: "notificationHandlerInvalidClient", statusCode: 404, body: `
 			{
 				"type": "",
 				"clientId": "",
@@ -45,7 +47,7 @@ func TestTestNotificationHandler(t *testing.T) {
 				"data": "{}"
 	        }
 		`},
-		{"notificationHandlerInvalidSignerId", 400, `
+		{name: "notificationHandlerInvalidSignerId", statusCode: 400, body: `
 			{
 				"type": "GICS.AddConsent",
 				"clientId": "gICS_Web",
@@ -63,10 +65,15 @@ func TestTestNotificationHandler(t *testing.T) {
 }
 
 type TestProducer struct {
+	healthy bool
 }
 
 func (p TestProducer) Send(_ []byte, _ time.Time, _ []byte, deliveryChan chan cKafka.Event) {
 	deliveryChan <- &cKafka.Message{}
+}
+
+func (p TestProducer) IsHealthy() bool {
+	return p.healthy
 }
 
 func notificationHandler(t *testing.T, data TestCase) {
@@ -87,18 +94,63 @@ func notificationHandler(t *testing.T, data TestCase) {
 		Gics: config.Gics{SignerId: "test"},
 	}
 
-	s := &Server{config: c, producer: TestProducer{}}
-	r := s.setupRouter()
+	s := Server{config: c, producer: TestProducer{}}
 
 	reqBody := []byte(data.body)
 
-	req, _ := http.NewRequest("POST", "/notification", bytes.NewBuffer(reqBody))
-	req.SetBasicAuth(c.App.Http.Auth.User, c.App.Http.Auth.Password)
+	testRoute(t, s, "POST", "/notification", bytes.NewBuffer(reqBody), data.statusCode)
+}
+
+func TestCheckHealth(t *testing.T) {
+	cases := []TestCase{
+		{
+			name:       "isHealthy",
+			producer:   &TestProducer{healthy: true},
+			statusCode: http.StatusOK,
+		},
+		{
+			name:       "notHealthy",
+			producer:   &TestProducer{healthy: false},
+			statusCode: http.StatusServiceUnavailable,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			checkHealth(t, c)
+		})
+	}
+}
+
+func checkHealth(t *testing.T, data TestCase) {
+
+	// setup config
+	c := config.AppConfig{
+		App: config.App{
+			Http: config.Http{
+				Auth: config.Auth{
+					User:     "foo",
+					Password: "bar",
+				},
+			},
+		},
+	}
+
+	s := Server{config: c, producer: data.producer}
+
+	testRoute(t, s, "GET", "/health", nil, data.statusCode)
+}
+
+func testRoute(t *testing.T, s Server, method, endpoint string, body io.Reader, returnCode int) {
+	r := s.setupRouter()
+
+	req, _ := http.NewRequest(method, endpoint, body)
+	req.SetBasicAuth(s.config.App.Http.Auth.User, s.config.App.Http.Auth.Password)
 	w := httptest.NewRecorder()
 
 	r.ServeHTTP(w, req)
 
-	assert.Equal(t, data.statusCode, w.Code)
+	assert.Equal(t, returnCode, w.Code)
 }
 
 func TestError_String(t *testing.T) {

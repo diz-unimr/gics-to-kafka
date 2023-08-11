@@ -10,6 +10,7 @@ import (
 
 type Producer interface {
 	Send(key []byte, timestamp time.Time, msg []byte, deliveryChan chan kafka.Event)
+	IsHealthy() bool
 }
 
 type NotificationProducer struct {
@@ -55,4 +56,13 @@ func (p *NotificationProducer) Send(key []byte, timestamp time.Time, msg []byte,
 		}
 		deliveryChan <- kafka.Error{}
 	}
+}
+
+func (p *NotificationProducer) IsHealthy() bool {
+	if p.Producer != nil && !p.Producer.IsClosed() {
+		m, err := p.Producer.GetMetadata(&p.Topic, false, 5000)
+		log.Info(m)
+		return err == nil
+	}
+	return false
 }
