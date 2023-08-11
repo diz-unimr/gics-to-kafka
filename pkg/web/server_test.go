@@ -15,11 +15,12 @@ type TestCase struct {
 	name       string
 	statusCode int
 	body       string
+	producer   *TestProducer
 }
 
 func TestTestNotificationHandler(t *testing.T) {
 	cases := []TestCase{
-		{"notificationHandlerSuccess", 201, `
+		{name: "notificationHandlerSuccess", statusCode: 201, body: `
 			{
 				"type": "GICS.AddConsent",
 				"clientId": "gICS_Web",
@@ -27,7 +28,7 @@ func TestTestNotificationHandler(t *testing.T) {
 				"data": "{\"type\":\"GICS.UpdateConsentInUse\",\"clientId\":\"gICS_Web\",\"consentKey\":{\"consentTemplateKey\":{\"domainName\":\"MII\",\"name\":\"Patienteneinwilligung MII\",\"version\":\"1.6.d\"},\"signerIds\":[{\"idType\":\"test\",\"name\":\"2\",\"creationDate\":\"2023-06-05 10:28:42\",\"orderNumber\":1}],\"consentDate\": \"2023-05-02 01:57:27\"}}"
 			}
 		`},
-		{"notificationHandlerInvalidData", 400, `
+		{name: "notificationHandlerInvalidData", statusCode: 400, body: `
 			{
 				"type": "GICS.AddConsent",
 				"clientId": "gICS_Web",
@@ -35,9 +36,9 @@ func TestTestNotificationHandler(t *testing.T) {
 				"data": "test"
 			}
 		`},
-		{"notificationHandlerParseError", 400, "test"},
-		{"notificationHandlerEmptyError", 400, "{}"},
-		{"notificationHandlerInvalidClient", 404, `
+		{name: "notificationHandlerParseError", statusCode: 400, body: "test"},
+		{name: "notificationHandlerEmptyError", statusCode: 400, body: "{}"},
+		{name: "notificationHandlerInvalidClient", statusCode: 404, body: `
 			{
 				"type": "",
 				"clientId": "",
@@ -45,7 +46,7 @@ func TestTestNotificationHandler(t *testing.T) {
 				"data": "{}"
 	        }
 		`},
-		{"notificationHandlerInvalidSignerId", 400, `
+		{name: "notificationHandlerInvalidSignerId", statusCode: 400, body: `
 			{
 				"type": "GICS.AddConsent",
 				"clientId": "gICS_Web",
@@ -63,6 +64,7 @@ func TestTestNotificationHandler(t *testing.T) {
 }
 
 type TestProducer struct {
+	healthy bool
 }
 
 func (p TestProducer) Send(_ []byte, _ time.Time, _ []byte, deliveryChan chan cKafka.Event) {
@@ -70,7 +72,7 @@ func (p TestProducer) Send(_ []byte, _ time.Time, _ []byte, deliveryChan chan cK
 }
 
 func (p TestProducer) IsHealthy() bool {
-	return true
+	return p.healthy
 }
 
 func notificationHandler(t *testing.T, data TestCase) {
@@ -97,6 +99,53 @@ func notificationHandler(t *testing.T, data TestCase) {
 	reqBody := []byte(data.body)
 
 	req, _ := http.NewRequest("POST", "/notification", bytes.NewBuffer(reqBody))
+	req.SetBasicAuth(c.App.Http.Auth.User, c.App.Http.Auth.Password)
+	w := httptest.NewRecorder()
+
+	r.ServeHTTP(w, req)
+
+	assert.Equal(t, data.statusCode, w.Code)
+}
+
+func TestCheckHealth(t *testing.T) {
+	cases := []TestCase{
+		{
+			name:       "isHealthy",
+			producer:   &TestProducer{healthy: true},
+			statusCode: http.StatusOK,
+		},
+		{
+			name:       "notHealthy",
+			producer:   &TestProducer{healthy: false},
+			statusCode: http.StatusServiceUnavailable,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			checkHealth(t, c)
+		})
+	}
+}
+
+func checkHealth(t *testing.T, data TestCase) {
+
+	// setup config
+	c := config.AppConfig{
+		App: config.App{
+			Http: config.Http{
+				Auth: config.Auth{
+					User:     "test",
+					Password: "test",
+				},
+			},
+		},
+	}
+
+	s := &Server{config: c, producer: data.producer}
+	r := s.setupRouter()
+
+	req, _ := http.NewRequest("GET", "/health", nil)
 	req.SetBasicAuth(c.App.Http.Auth.User, c.App.Http.Auth.Password)
 	w := httptest.NewRecorder()
 
