@@ -5,6 +5,7 @@ import (
 	"gics-to-kafka/pkg/config"
 	cKafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -93,18 +94,11 @@ func notificationHandler(t *testing.T, data TestCase) {
 		Gics: config.Gics{SignerId: "test"},
 	}
 
-	s := &Server{config: c, producer: TestProducer{}}
-	r := s.setupRouter()
+	s := Server{config: c, producer: TestProducer{}}
 
 	reqBody := []byte(data.body)
 
-	req, _ := http.NewRequest("POST", "/notification", bytes.NewBuffer(reqBody))
-	req.SetBasicAuth(c.App.Http.Auth.User, c.App.Http.Auth.Password)
-	w := httptest.NewRecorder()
-
-	r.ServeHTTP(w, req)
-
-	assert.Equal(t, data.statusCode, w.Code)
+	testRoute(t, s, "POST", "/notification", bytes.NewBuffer(reqBody), data.statusCode)
 }
 
 func TestCheckHealth(t *testing.T) {
@@ -142,16 +136,21 @@ func checkHealth(t *testing.T, data TestCase) {
 		},
 	}
 
-	s := &Server{config: c, producer: data.producer}
+	s := Server{config: c, producer: data.producer}
+
+	testRoute(t, s, "GET", "/health", nil, data.statusCode)
+}
+
+func testRoute(t *testing.T, s Server, method, endpoint string, body io.Reader, returnCode int) {
 	r := s.setupRouter()
 
-	req, _ := http.NewRequest("GET", "/health", nil)
-	req.SetBasicAuth(c.App.Http.Auth.User, c.App.Http.Auth.Password)
+	req, _ := http.NewRequest(method, endpoint, body)
+	req.SetBasicAuth(s.config.App.Http.Auth.User, s.config.App.Http.Auth.Password)
 	w := httptest.NewRecorder()
 
 	r.ServeHTTP(w, req)
 
-	assert.Equal(t, data.statusCode, w.Code)
+	assert.Equal(t, returnCode, w.Code)
 }
 
 func TestError_String(t *testing.T) {
