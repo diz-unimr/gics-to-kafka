@@ -79,6 +79,7 @@ func (s Server) setupRouter() *gin.Engine {
 	r.POST("/notification", gin.BasicAuth(gin.Accounts{
 		s.config.App.Http.Auth.User: s.config.App.Http.Auth.Password,
 	}), s.handleNotification)
+	r.GET("/health", s.checkHealth)
 
 	return r
 }
@@ -173,6 +174,18 @@ func (s Server) sendNotification(signerId string, created *string, data Notifica
 	msg, _ := json.Marshal(data)
 
 	go s.producer.Send([]byte(key), dt, msg, deliveryChan)
+}
+
+func (s Server) checkHealth(c *gin.Context) {
+	if s.producer.IsHealthy() {
+		c.JSON(http.StatusOK, gin.H{
+			"healthy": true,
+		})
+	} else {
+		c.JSON(http.StatusServiceUnavailable, gin.H{
+			"healthy": false,
+		})
+	}
 }
 
 func hash(values ...string) string {

@@ -28,7 +28,11 @@ RUN addgroup -g $GID $GROUP && \
 WORKDIR /app/
 COPY --from=build --chown=$USER:$USER /app/gics-to-kafka .
 COPY --from=build --chown=$USER:$USER /app/app.yml .
-ENV GIN_MODE=release
-
 USER $USER
+
+ENV GIN_MODE=release
+EXPOSE 8080
+
+HEALTHCHECK --interval=1m CMD wget -q --tries=1 --spider http://localhost:8080/health || exit 1
+
 ENTRYPOINT ["/app/gics-to-kafka"]
