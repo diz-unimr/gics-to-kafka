@@ -98,6 +98,11 @@ WHERE `configKey` = 'notification.config';
 
 The docker image runs as user `65532` (`nonroot` in container).
 
+You can override the `USER` instructions with any user / group id.
+This might be necessary when providing a private key certificate with `400` permissions.
+
+### Health check
+
 Keep default internal HTTP port 8080 when running in Docker as the health check
 instruction tests against this port.
 

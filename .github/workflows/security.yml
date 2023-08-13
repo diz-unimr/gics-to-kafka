@@ -1,3 +1,4 @@
+---
 name: scan
 on:
   workflow_dispatch:
