@@ -2,12 +2,32 @@
 [![MegaLinter](https://github.com/diz-unimr/gics-to-kafka/workflows/MegaLinter/badge.svg?branch=main)](https://github.com/diz-unimr/gics-to-kafka/actions?query=workflow%3AMegaLinter+branch%3Amain) ![go](https://github.com/diz-unimr/gics-to-kafka/actions/workflows/build.yml/badge.svg) ![docker](https://github.com/diz-unimr/gics-to-kafka/actions/workflows/release.yml/badge.svg) [![codecov](https://codecov.io/gh/diz-unimr/gics-to-kafka/branch/main/graph/badge.svg?token=D66XMZ5ALR)](https://codecov.io/gh/diz-unimr/gics-to-kafka)
 > Receive gICS notifications and send them to a Kafka topic
 
-This is a minimal Kafka producer which exposes a single HTTP endpoint to receive messages via 
+This is a minimal Kafka producer which exposes a single HTTP endpoint to receive messages via
 the gICS notifications service (connectionType: HTTP) and sends them to a Kafka topic.
 
-## HTTP Endpoint
+## HTTP Endpoints
 
-The `POST` endpoint for receiving notifications is: `/notification`
+### `/notification`
+
+The `POST` endpoint for receiving notifications is `/notification` with the notification as payload (JSON).
+
+### `/health`
+
+Health endpoint to test service availability and successful Kafka broker connection.
+It queries target topic metadata to check this.
+
+#### Response
+
+`200` Ok
+
+```json
+{
+  "healthy": true
+}
+```
+or:
+
+`503` Service Unavailable
 
 ## Configuration properties
 
@@ -25,7 +45,7 @@ The `POST` endpoint for receiving notifications is: `/notification`
 | `kafka.ssl.ca-location`          | /app/cert/kafka-ca.pem | Kafka CA certificate location           |
 | `kafka.ssl.certificate-location` | /app/cert/app-cert.pem | Client certificate location             |
 | `kafka.ssl.key-location`         | /app/cert/app-key.pem  | Client key location                     |
-| `kafka.ssl.key-password`         | private-key-password   | Client key password                     |
+| `kafka.ssl.key-password`         |                        | Client key password                     |
 
 ### Environment variables
 
@@ -74,7 +94,12 @@ UPDATE `configuration` SET `value` =
 WHERE `configKey` = 'notification.config';
 ```
 
-# Deployment
+## Docker deployment
+
+The docker image runs as user `65532` (`nonroot` in container).
+
+Keep default internal HTTP port 8080 when running in Docker as the health check
+instruction tests against this port.
 
 Example via `docker compose`:
 ```yml
@@ -85,11 +110,11 @@ gics-to-kafka:
       APP_NAME: gics-to-kafka
       APP_HTTP_AUTH_USER: test
       APP_HTTP_AUTH_PASSWORD: test
-      APP_HTTP_PORT: 8080
       APP_LOG_LEVEL: info
       GICS_SIGNER_ID: Patienten-ID
       KAFKA_BOOTSTRAP_SERVERS: kafka:19092
       KAFKA_SECURITY_PROTOCOL: SSL
+      KAFKA_SSL_KEY_PASSWORD: private-key-password
       KAFKA_OUTPUT_TOPIC: gics-notification
     volumes:
      - ./cert/ca-cert:/app/cert/kafka-ca.pem:ro
@@ -97,6 +122,6 @@ gics-to-kafka:
      - ./cert/gics-to-kafka.key:/app/cert/app-key.pem:ro
 ```
 
-# License
+## License
 
 [AGPL-3.0](https://www.gnu.org/licenses/agpl-3.0.en.html)
