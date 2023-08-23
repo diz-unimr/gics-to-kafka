@@ -3,6 +3,9 @@
   "extends": [
     "config:recommended"
   ],
+  "ignorePaths": [
+    "dev/"
+  ],
   "packageRules": [
     {
       "matchManagers": [
@@ -11,10 +14,10 @@
       "groupName": "github-actions"
     },
     {
-      "matchDatasources": [
-        "docker"
+      "matchManagers": [
+        "dockerfile"
       ],
-      "groupName": "container-images"
+      "groupName": "docker"
     },
     {
       "matchManagers": [
