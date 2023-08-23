@@ -1,28 +1,18 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:recommended"
-  ],
-  "ignorePaths": [
-    "dev/"
-  ],
+  "extends": ["config:recommended"],
+  "ignorePaths": ["dev/"],
   "packageRules": [
     {
-      "matchManagers": [
-        "github-actions"
-      ],
+      "matchManagers": ["github-actions"],
       "groupName": "github-actions"
     },
     {
-      "matchManagers": [
-        "dockerfile"
-      ],
+      "matchManagers": ["dockerfile"],
       "groupName": "docker"
     },
     {
-      "matchManagers": [
-        "gomod"
-      ],
+      "matchManagers": ["gomod"],
       "groupName": "go"
     }
   ]
