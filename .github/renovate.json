@@ -1,5 +1,5 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["github>diz-unimr/.github/renovate/renovate-go.json"],
+  "extends": ["github>diz-unimr/.github//renovate/go"],
   "ignorePaths": ["dev/"]
 }
