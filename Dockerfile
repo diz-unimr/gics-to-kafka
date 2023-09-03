@@ -1,9 +1,9 @@
-FROM golang:1.20.4-alpine3.16 AS build
+FROM golang:1.21-alpine3.18 AS build
 
 RUN set -ex && \
     apk add --no-progress --no-cache \
-        gcc=11.2.1_git20220219-r2 \
-        musl-dev=1.2.3-r3
+        gcc \
+        musl-dev
 
 WORKDIR /app
 COPY go.* ./
@@ -14,7 +14,7 @@ RUN go get -d -v && GOOS=linux GOARCH=amd64 go build -v -tags musl
 
 FROM alpine:3.18 as run
 
-RUN apk add --no-progress --no-cache tzdata=2023c-r0
+RUN apk add --no-progress --no-cache tzdata
 
 ENV UID=65532
 ENV GID=65532
