@@ -26,7 +26,7 @@ jobs:
     if: ${{ github.event_name != 'pull_request' && github.event_name != 'release' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Semantic Release
         uses: cycjimmy/semantic-release-action@v3
@@ -46,10 +46,10 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Log in to the Container registry
-        uses: docker/login-action@cf8514a65188af1d4f94f8c28a7a4153af1088ce
+        uses: docker/login-action@a5609cb39f57be157c39b77359abfaa43aeaeb8f
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -57,7 +57,7 @@ jobs:
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -66,7 +66,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: .
           push: true
