@@ -7,9 +7,6 @@ app:
       password:
     port: 8080
 
-gics:
-  signer-id: "Patienten-ID"
-
 kafka:
   bootstrap-servers: localhost:9092
   security-protocol: ssl

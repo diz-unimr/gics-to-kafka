@@ -15,7 +15,6 @@ func TestLoadDefaultConfig(t *testing.T) {
 			LogLevel: "info",
 			Http:     config.Http{Port: "8080"},
 		},
-		Gics: config.Gics{SignerId: "Patienten-ID"},
 		Kafka: config.Kafka{
 			BootstrapServers: "localhost:9092",
 			OutputTopic:      "gics-notification",
