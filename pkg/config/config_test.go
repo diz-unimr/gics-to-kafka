@@ -13,11 +13,11 @@ func TestLoadConfigWithEnv(t *testing.T) {
 	setProjectDir()
 
 	expected := "test"
-	t.Setenv("GICS_SIGNER_ID", expected)
+	t.Setenv("KAFKA_OUTPUT_TOPIC", expected)
 
 	config, _ := LoadConfig(".")
 
-	assert.Equal(t, expected, config.Gics.SignerId)
+	assert.Equal(t, expected, config.Kafka.OutputTopic)
 }
 
 func TestLoadConfigFileNotFound(t *testing.T) {

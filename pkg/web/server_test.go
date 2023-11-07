@@ -47,12 +47,12 @@ func TestTestNotificationHandler(t *testing.T) {
 				"data": "{}"
 	        }
 		`},
-		{name: "notificationHandlerInvalidSignerId", statusCode: 400, body: `
+		{name: "notificationHandlerMissingSignerId", statusCode: 400, body: `
 			{
 				"type": "GICS.AddConsent",
 				"clientId": "gICS_Web",
 				"createdAt": "2023-06-05T12:09:10.463125126",
-				"data": "{\"type\":\"GICS.UpdateConsentInUse\",\"clientId\":\"gICS_Web\",\"consentKey\":{\"consentTemplateKey\":{\"domainName\":\"MII\",\"name\":\"Patienteneinwilligung MII\",\"version\":\"1.6.d\"},\"signerIds\":[{\"idType\":\"invalid\",\"name\":\"2\",\"creationDate\":\"2023-06-05 10:28:42\",\"orderNumber\":1}],\"consentDate\": \"2023-05-02 01:57:27\"}}"
+				"data": "{\"type\":\"GICS.UpdateConsentInUse\",\"clientId\":\"gICS_Web\",\"consentKey\":{\"consentTemplateKey\":{\"domainName\":\"MII\",\"name\":\"Patienteneinwilligung MII\",\"version\":\"1.6.d\"},\"signerIds\":[],\"consentDate\": \"2023-05-02 01:57:27\"}}"
 			}
 		`},
 	}
@@ -91,7 +91,6 @@ func notificationHandler(t *testing.T, data TestCase) {
 			BootstrapServers: "localhost:9092",
 			SecurityProtocol: "plaintext",
 		},
-		Gics: config.Gics{SignerId: "test"},
 	}
 
 	s := Server{config: c, producer: TestProducer{}}
@@ -99,6 +98,31 @@ func notificationHandler(t *testing.T, data TestCase) {
 	reqBody := []byte(data.body)
 
 	testRoute(t, s, "POST", "/notification", bytes.NewBuffer(reqBody), data.statusCode)
+}
+
+func TestSignerId(t *testing.T) {
+	expected := SignerId{
+		IdType:      "Test-ID",
+		Id:          "1",
+		OrderNumber: 1,
+	}
+
+	d := NotificationData{
+		ConsentKey: &ConsentKey{
+			SignerIds: []SignerId{
+				{
+					IdType:      "Test-ID",
+					Id:          "3",
+					OrderNumber: 3,
+				},
+				expected,
+			},
+		},
+	}
+
+	actual := *d.SignerId()
+
+	assert.Equal(t, expected, actual)
 }
 
 func TestCheckHealth(t *testing.T) {

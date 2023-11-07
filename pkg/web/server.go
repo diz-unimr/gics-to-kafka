@@ -9,8 +9,8 @@ import (
 	cKafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/exp/slices"
 	"net/http"
+	"sort"
 	"time"
 )
 
@@ -52,7 +52,7 @@ type ConsentTemplateKey struct {
 type SignerId struct {
 	IdType      string `bson:"idType" json:"idType"`
 	Id          string `bson:"id" json:"id"`
-	OrderNumber *int   `bson:"orderNumber" json:"orderNumber"`
+	OrderNumber int    `bson:"orderNumber" json:"orderNumber"`
 }
 
 type Server struct {
@@ -127,10 +127,10 @@ func (s Server) handleNotification(c *gin.Context) {
 		return
 	}
 
-	// check signer ids
-	signerId := d.SignerId(s.config.Gics.SignerId)
+	// get signer id
+	signerId := d.SignerId()
 	if signerId == nil {
-		log.WithField("signerId", s.config.Gics.SignerId).Error("Request ist missing signerId type")
+		log.Error("Request ist missing signerId type")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to parse signerId",
 		})
@@ -138,7 +138,7 @@ func (s Server) handleNotification(c *gin.Context) {
 	}
 
 	listener := make(chan cKafka.Event, 1)
-	s.sendNotification(*signerId, n.CreatedAt, d, listener)
+	s.sendNotification(signerId, n.CreatedAt, d, listener)
 
 	e := <-listener
 	switch ev := e.(type) {
@@ -155,17 +155,22 @@ func (s Server) handleNotification(c *gin.Context) {
 	}
 }
 
-func (d NotificationData) SignerId(key string) *string {
-	idx := slices.IndexFunc(d.ConsentKey.SignerIds, func(id SignerId) bool { return id.IdType == key })
-	if idx == -1 {
+func (d NotificationData) SignerId() *SignerId {
+	if len(d.ConsentKey.SignerIds) == 0 {
 		return nil
 	}
-	return &d.ConsentKey.SignerIds[idx].Id
+
+	ids := d.ConsentKey.SignerIds
+	sort.Slice(d.ConsentKey.SignerIds, func(i, j int) bool {
+		return ids[i].OrderNumber < ids[j].OrderNumber
+	})
+
+	return &d.ConsentKey.SignerIds[0]
 }
 
-func (s Server) sendNotification(signerId string, created *string, data NotificationData, deliveryChan chan cKafka.Event) {
+func (s Server) sendNotification(signerId *SignerId, created *string, data NotificationData, deliveryChan chan cKafka.Event) {
 	t := *data.ConsentKey.ConsentTemplateKey
-	key := hash(*t.DomainName, *t.Name, *t.Version, s.config.Gics.SignerId, signerId, *data.ConsentKey.ConsentDate)
+	key := hash(*t.DomainName, *t.Name, *t.Version, signerId.IdType, signerId.Id, *data.ConsentKey.ConsentDate)
 	loc, _ := time.LoadLocation("Europe/Berlin")
 	dt, err := time.ParseInLocation("2006-01-02T15:04:05", *created, loc)
 	if err != nil {

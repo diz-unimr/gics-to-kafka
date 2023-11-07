@@ -8,7 +8,6 @@ import (
 type AppConfig struct {
 	App   App   `mapstructure:"app"`
 	Kafka Kafka `mapstructure:"kafka"`
-	Gics  Gics  `mapstructure:"gics"`
 }
 
 type Http struct {
@@ -34,10 +33,6 @@ type Ssl struct {
 	CertificateLocation string `mapstructure:"certificate-location"`
 	KeyLocation         string `mapstructure:"key-location"`
 	KeyPassword         string `mapstructure:"key-password"`
-}
-
-type Gics struct {
-	SignerId string `mapstructure:"signer-id"`
 }
 
 type Auth struct {

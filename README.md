@@ -38,7 +38,6 @@ or:
 | `app.http.auth.user`             |                        | HTTP endpoint Basic Auth user           |
 | `app.http.auth.password`         |                        | HTTP endpoint Basic Auth password       |
 | `app.http.port`                  | 8080                   | HTTP endpoint port                      |
-| `gics.signer-id`                 | Patienten-ID           | Target consent signerId                 |
 | `kafka.bootstrap-servers`        | localhost:9092         | Kafka brokers                           |
 | `kafka.security-protocol`        | ssl                    | Kafka communication protocol            |
 | `kafka.output-topic`             | gics-notification      | Kafka topic to produce to               |
@@ -116,7 +115,6 @@ gics-to-kafka:
       APP_HTTP_AUTH_USER: test
       APP_HTTP_AUTH_PASSWORD: test
       APP_LOG_LEVEL: info
-      GICS_SIGNER_ID: Patienten-ID
       KAFKA_BOOTSTRAP_SERVERS: kafka:19092
       KAFKA_SECURITY_PROTOCOL: SSL
       KAFKA_SSL_KEY_PASSWORD: private-key-password
