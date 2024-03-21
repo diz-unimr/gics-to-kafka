@@ -11,6 +11,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"net/http"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -112,9 +113,9 @@ func (s Server) handleNotification(c *gin.Context) {
 
 	log.WithField("payload", n).Trace("Received")
 
-	if n.ClientId == nil || *n.ClientId != "gICS_Web" {
-		log.Error("Invalid or missing 'clientId' property. Should be 'gICS_Web'")
-		c.JSON(http.StatusNotFound, gin.H{
+	if !strings.Contains(*n.ClientId, "gICS_") {
+		log.Error("Invalid 'clientId' property. Should be prefixed with: 'gICS_'")
+		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid or missing clientId"})
 		return
 	}

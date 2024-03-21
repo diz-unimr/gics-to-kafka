@@ -39,20 +39,28 @@ func TestTestNotificationHandler(t *testing.T) {
 		`},
 		{name: "notificationHandlerParseError", statusCode: 400, body: "test"},
 		{name: "notificationHandlerEmptyError", statusCode: 400, body: "{}"},
-		{name: "notificationHandlerInvalidClient", statusCode: 404, body: `
-			{
-				"type": "",
-				"clientId": "",
-				"createdAt": "",
-				"data": "{}"
-	        }
-		`},
 		{name: "notificationHandlerMissingSignerId", statusCode: 400, body: `
 			{
 				"type": "GICS.AddConsent",
 				"clientId": "gICS_Web",
 				"createdAt": "2023-06-05T12:09:10.463125126",
 				"data": "{\"type\":\"GICS.UpdateConsentInUse\",\"clientId\":\"gICS_Web\",\"consentKey\":{\"consentTemplateKey\":{\"domainName\":\"MII\",\"name\":\"Patienteneinwilligung MII\",\"version\":\"1.6.d\"},\"signerIds\":[],\"consentDate\": \"2023-05-02 01:57:27\"}}"
+			}
+		`},
+		{name: "notificationHandlerMissingClientClientId", statusCode: 400, body: `
+			{
+				"type": "",
+				"clientId": null,
+				"createdAt": "",
+				"data": "{}"
+	        }
+		`},
+		{name: "notificationHandlerInvalidClientId", statusCode: 400, body: `
+			{
+				"type": "GICS.AddConsent",
+				"clientId": "test",
+				"createdAt": "2023-06-05T12:09:10.463125126",
+				"data": "{}"
 			}
 		`},
 	}
