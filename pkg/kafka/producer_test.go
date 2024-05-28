@@ -4,6 +4,7 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 func TestIsHealthy(t *testing.T) {
@@ -18,7 +19,7 @@ type TestKafkaProducer struct {
 }
 
 func (t TestKafkaProducer) Produce(_ *kafka.Message, _ chan kafka.Event) error {
-	return nil
+	return kafka.NewError(42, "test", true)
 }
 
 func (t TestKafkaProducer) IsClosed() bool {
@@ -27,4 +28,16 @@ func (t TestKafkaProducer) IsClosed() bool {
 
 func (t TestKafkaProducer) GetMetadata(_ *string, _ bool, _ int) (*kafka.Metadata, error) {
 	return &kafka.Metadata{}, nil
+}
+
+func TestSend_Error(t *testing.T) {
+	p := &NotificationProducer{Producer: TestKafkaProducer{}, Topic: ""}
+	channel := make(chan kafka.Event)
+
+	// just empty data, we rely on Produce of TestKafkaProducer to return an error
+	go p.Send([]byte{}, time.Time{}, []byte{}, channel)
+
+	actual := <-channel
+
+	assert.Equal(t, kafka.NewError(42, "test", true), actual)
 }

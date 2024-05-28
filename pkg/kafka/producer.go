@@ -60,7 +60,7 @@ func (p *NotificationProducer) Send(key []byte, timestamp time.Time, msg []byte,
 			time.Sleep(time.Second)
 			p.Send(key, timestamp, msg, deliveryChan)
 		}
-		deliveryChan <- kafka.Error{}
+		deliveryChan <- err.(kafka.Error)
 	}
 }
 
