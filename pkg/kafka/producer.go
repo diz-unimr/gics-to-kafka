@@ -60,8 +60,7 @@ func (p *NotificationProducer) Send(key []byte, timestamp time.Time, msg []byte,
 
 func (p *NotificationProducer) IsHealthy() bool {
 	if p.Producer != nil && !p.Producer.IsClosed() {
-		m, err := p.Producer.GetMetadata(&p.Topic, false, 5000)
-		log.Info(m)
+		_, err := p.Producer.GetMetadata(&p.Topic, false, 5000)
 		return err == nil
 	}
 	return false
