@@ -8,13 +8,19 @@ import (
 	"time"
 )
 
+type ProducerInternal interface {
+	Produce(msg *kafka.Message, deliveryChan chan kafka.Event) error
+	IsClosed() bool
+	GetMetadata(topic *string, allTopics bool, timeoutMs int) (*kafka.Metadata, error)
+}
+
 type Producer interface {
 	Send(key []byte, timestamp time.Time, msg []byte, deliveryChan chan kafka.Event)
 	IsHealthy() bool
 }
 
 type NotificationProducer struct {
-	Producer *kafka.Producer
+	Producer ProducerInternal
 	Topic    string
 }
 
