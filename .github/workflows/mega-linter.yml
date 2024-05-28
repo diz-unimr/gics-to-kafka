@@ -44,15 +44,16 @@ jobs:
         id: ml
         # You can override MegaLinter flavor used to have faster performances
         # More info at https://megalinter.io/flavors/
-        uses: oxsecurity/megalinter/flavors/cupcake@v7.10.0
+        uses: oxsecurity/megalinter/flavors/cupcake@beta
         env:
+          # remove when megalinter container is using go 1.22
+          GOTOOLCHAIN: "go1.22.0+auto"
           # All available variables are described in documentation
           # https://megalinter.io/configuration/
           VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} # Validates all source when push on main, else just the git diff with main. Override with true if you always want to lint all sources
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # ADD YOUR CUSTOM ENV VARIABLES HERE OR DEFINE THEM IN A FILE .mega-linter.yml AT THE ROOT OF YOUR REPOSITORY
           DISABLE: SPELL # ignore spell checks
-          DISABLE_ERRORS_LINTERS: REPOSITORY_DEVSKIM # missing git safe.directory
 
       # Upload MegaLinter artifacts
       - name: Archive production artifacts
