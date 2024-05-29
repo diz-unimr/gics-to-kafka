@@ -89,7 +89,7 @@ func mapSyslogLevel(level int) slog.Level {
 	case level == 4:
 		return slog.LevelWarn
 	// 5 and 6 are Info
-	case level > 7:
+	case level >= 7:
 		return slog.LevelDebug
 	}
 	return slog.LevelInfo

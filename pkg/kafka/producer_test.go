@@ -4,9 +4,16 @@ import (
 	"gics-to-kafka/pkg/config"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/stretchr/testify/assert"
+	"log/slog"
 	"testing"
 	"time"
 )
+
+type LogLevelTestCase struct {
+	name     string
+	level    int
+	expected slog.Level
+}
 
 func TestIsHealthy(t *testing.T) {
 	p := &NotificationProducer{Producer: TestKafkaProducer{}, Topic: ""}
@@ -63,4 +70,38 @@ func TestSend_Error(t *testing.T) {
 	actual := <-channel
 
 	assert.Equal(t, kafka.NewError(42, "test", true), actual)
+}
+
+func TestMapSyslogLevel(t *testing.T) {
+	cases := []LogLevelTestCase{
+		{
+			name:     "error",
+			level:    0,
+			expected: slog.LevelError,
+		},
+		{
+			name:     "warn",
+			level:    4,
+			expected: slog.LevelWarn,
+		},
+		{
+			name:     "info",
+			level:    5,
+			expected: slog.LevelInfo,
+		},
+		{
+			name:     "debug",
+			level:    7,
+			expected: slog.LevelDebug,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			actual := mapSyslogLevel(c.level)
+
+			assert.Equal(t, c.expected, actual)
+		})
+	}
+
 }
