@@ -1,12 +1,19 @@
 package kafka
 
 import (
+	"context"
 	"gics-to-kafka/pkg/config"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
-	log "github.com/sirupsen/logrus"
+	"log/slog"
 	"os"
 	"time"
 )
+
+type ProducerInternal interface {
+	Produce(msg *kafka.Message, deliveryChan chan kafka.Event) error
+	IsClosed() bool
+	GetMetadata(topic *string, allTopics bool, timeoutMs int) (*kafka.Metadata, error)
+}
 
 type Producer interface {
 	Send(key []byte, timestamp time.Time, msg []byte, deliveryChan chan kafka.Event)
@@ -14,12 +21,11 @@ type Producer interface {
 }
 
 type NotificationProducer struct {
-	Producer *kafka.Producer
+	Producer ProducerInternal
 	Topic    string
 }
 
 func NewProducer(config config.Kafka) *NotificationProducer {
-
 	p, err := kafka.NewProducer(&kafka.ConfigMap{
 		"bootstrap.servers":        config.BootstrapServers,
 		"security.protocol":        config.SecurityProtocol,
@@ -27,11 +33,20 @@ func NewProducer(config config.Kafka) *NotificationProducer {
 		"ssl.key.location":         config.Ssl.KeyLocation,
 		"ssl.certificate.location": config.Ssl.CertificateLocation,
 		"ssl.key.password":         config.Ssl.KeyPassword,
+		"log.connection.close":     false,
+		"go.logs.channel.enable":   true,
 	})
 	if err != nil {
-		log.WithError(err).Error("Failed to create Kafka producer. Terminating")
+		slog.Error("Failed to create Kafka producer. Terminating")
 		os.Exit(1)
 	}
+
+	go func() {
+		for {
+			e := <-p.Logs()
+			slog.Log(context.Background(), mapSyslogLevel(e.Level), e.Message)
+		}
+	}()
 
 	return &NotificationProducer{
 		Producer: p,
@@ -54,15 +69,28 @@ func (p *NotificationProducer) Send(key []byte, timestamp time.Time, msg []byte,
 			time.Sleep(time.Second)
 			p.Send(key, timestamp, msg, deliveryChan)
 		}
-		deliveryChan <- kafka.Error{}
+		deliveryChan <- err.(kafka.Error)
 	}
 }
 
 func (p *NotificationProducer) IsHealthy() bool {
 	if p.Producer != nil && !p.Producer.IsClosed() {
-		m, err := p.Producer.GetMetadata(&p.Topic, false, 5000)
-		log.Info(m)
+		_, err := p.Producer.GetMetadata(&p.Topic, false, 5000)
 		return err == nil
 	}
 	return false
+}
+
+func mapSyslogLevel(level int) slog.Level {
+	// syslog levels
+	switch {
+	case level <= 3:
+		return slog.LevelError
+	case level == 4:
+		return slog.LevelWarn
+	// 5 and 6 are Info
+	case level >= 7:
+		return slog.LevelDebug
+	}
+	return slog.LevelInfo
 }

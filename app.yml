@@ -3,8 +3,8 @@ app:
   log-level: info
   http:
     auth:
-      user:
-      password:
+      user: test
+      password: test
     port: 8080
 
 kafka:

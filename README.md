@@ -35,8 +35,8 @@ or:
 |----------------------------------|------------------------|-----------------------------------------|
 | `app.name`                       | gics-to-kafka          | Application name                        |
 | `app.log-level`                  | info                   | Log level (error,warn,info,debug,trace) |
-| `app.http.auth.user`             |                        | HTTP endpoint Basic Auth user           |
-| `app.http.auth.password`         |                        | HTTP endpoint Basic Auth password       |
+| `app.http.auth.user`             | test                   | HTTP endpoint Basic Auth user           |
+| `app.http.auth.password`         | test                   | HTTP endpoint Basic Auth password       |
 | `app.http.port`                  | 8080                   | HTTP endpoint port                      |
 | `kafka.bootstrap-servers`        | localhost:9092         | Kafka brokers                           |
 | `kafka.security-protocol`        | ssl                    | Kafka communication protocol            |

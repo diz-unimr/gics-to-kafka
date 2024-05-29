@@ -13,13 +13,14 @@ import (
 )
 
 type TestCase struct {
-	name       string
-	statusCode int
-	body       string
-	producer   *TestProducer
+	name          string
+	statusCode    int
+	body          string
+	producer      *TestProducer
+	kafkaResponse interface{}
 }
 
-func TestTestNotificationHandler(t *testing.T) {
+func TestNotificationHandler(t *testing.T) {
 	cases := []TestCase{
 		{name: "notificationHandlerSuccess", statusCode: 201, body: `
 			{
@@ -63,21 +64,39 @@ func TestTestNotificationHandler(t *testing.T) {
 				"data": "{}"
 			}
 		`},
+		{name: "notificationHandlerKafkaSendError", statusCode: 400, body: `
+			{
+				"type": "GICS.AddConsent",
+				"clientId": "gICS_test",
+				"createdAt": "2023-06-05T12:09:10.463125126",
+				"data": "{\"type\":\"GICS.UpdateConsentInUse\",\"clientId\":\"gICS_Web\",\"consentKey\":{\"consentTemplateKey\":{\"domainName\":\"MII\",\"name\":\"Patienteneinwilligung MII\",\"version\":\"1.6.d\"},\"signerIds\":[{\"idType\":\"test\",\"name\":\"2\",\"creationDate\":\"2023-06-05 10:28:42\",\"orderNumber\":1}],\"consentDate\": \"2023-05-02 01:57:27\"}}"
+			}
+		`,
+			kafkaResponse: cKafka.Error{}},
 	}
 
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
+			if c.kafkaResponse == nil {
+				c.kafkaResponse = cKafka.Message{}
+			}
 			notificationHandler(t, c)
 		})
 	}
 }
 
 type TestProducer struct {
-	healthy bool
+	healthy       bool
+	kafkaResponse interface{}
 }
 
 func (p TestProducer) Send(_ []byte, _ time.Time, _ []byte, deliveryChan chan cKafka.Event) {
-	deliveryChan <- &cKafka.Message{}
+	switch v := p.kafkaResponse.(type) {
+	case cKafka.Message:
+		deliveryChan <- &v
+	case cKafka.Error:
+		deliveryChan <- v
+	}
 }
 
 func (p TestProducer) IsHealthy() bool {
@@ -101,7 +120,8 @@ func notificationHandler(t *testing.T, data TestCase) {
 		},
 	}
 
-	s := Server{config: c, producer: TestProducer{}}
+	tp := TestProducer{kafkaResponse: data.kafkaResponse}
+	s := Server{config: c, producer: tp}
 
 	reqBody := []byte(data.body)
 

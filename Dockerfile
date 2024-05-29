@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine3.18 AS build
+FROM golang:1.22-alpine3.19 AS build
 
 RUN set -ex && \
     apk add --no-progress --no-cache \
@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 RUN go get -d -v && GOOS=linux GOARCH=amd64 go build -v -tags musl
 
-FROM alpine:3.18 as run
+FROM alpine:3.19 as run
 
 RUN apk add --no-progress --no-cache tzdata
 
@@ -32,6 +32,6 @@ USER $USER
 ENV GIN_MODE=release
 EXPOSE 8080
 
-HEALTHCHECK --interval=1m CMD wget -q --tries=1 --spider http://localhost:8080/health || exit 1
+HEALTHCHECK --interval=1m CMD wget -q --tries=1 http://localhost:8080/health -O /dev/null || exit 1
 
 ENTRYPOINT ["/app/gics-to-kafka"]
