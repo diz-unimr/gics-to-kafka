@@ -60,13 +60,13 @@ func parseConfig(path string) (config *AppConfig, err error) {
 	return config, err
 }
 
-func LoadConfig() AppConfig {
-	c, err := parseConfig(".")
+func LoadConfig(path string) *AppConfig {
+	c, err := parseConfig(path)
 	if err != nil {
 		slog.Error("Unable to load config file", "error", err)
-		os.Exit(1)
+		return nil
 	}
-	return *c
+	return c
 }
 
 func ConfigureLogger(c App) {

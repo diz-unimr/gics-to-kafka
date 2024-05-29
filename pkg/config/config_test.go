@@ -46,7 +46,7 @@ func TestParseConfigFileNotFound(t *testing.T) {
 }
 
 func TestLoadDefaultConfig(t *testing.T) {
-
+	setProjectDir()
 	defaultConfig := AppConfig{
 		App: App{
 			Name:     "gics-to-kafka",
@@ -64,9 +64,17 @@ func TestLoadDefaultConfig(t *testing.T) {
 			},
 		},
 	}
-	actual := LoadConfig()
+	actual := *LoadConfig(".")
 
 	assert.Equal(t, defaultConfig, actual)
+}
+
+func TestLoadConfig_Error(t *testing.T) {
+	setProjectDir()
+
+	actual := LoadConfig("/")
+
+	assert.Nil(t, actual)
 }
 
 func TestConfigureLogger(t *testing.T) {
