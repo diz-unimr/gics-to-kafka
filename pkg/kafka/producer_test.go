@@ -16,7 +16,17 @@ func TestIsHealthy(t *testing.T) {
 	assert.Equal(t, true, actual)
 }
 
+func TestIsHealthyClosed(t *testing.T) {
+	k := TestKafkaProducer{closed: true}
+	p := &NotificationProducer{Producer: k, Topic: ""}
+
+	actual := p.IsHealthy()
+
+	assert.Equal(t, false, actual)
+}
+
 type TestKafkaProducer struct {
+	closed bool
 }
 
 func (t TestKafkaProducer) Produce(_ *kafka.Message, _ chan kafka.Event) error {
@@ -24,7 +34,7 @@ func (t TestKafkaProducer) Produce(_ *kafka.Message, _ chan kafka.Event) error {
 }
 
 func (t TestKafkaProducer) IsClosed() bool {
-	return false
+	return t.closed
 }
 
 func (t TestKafkaProducer) GetMetadata(_ *string, _ bool, _ int) (*kafka.Metadata, error) {
