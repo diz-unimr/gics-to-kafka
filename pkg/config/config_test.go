@@ -51,7 +51,10 @@ func TestLoadDefaultConfig(t *testing.T) {
 		App: App{
 			Name:     "gics-to-kafka",
 			LogLevel: "info",
-			Http:     Http{Port: "8080"},
+			Http: Http{Port: "8080", Auth: Auth{
+				User:     "test",
+				Password: "test",
+			}},
 		},
 		Kafka: Kafka{
 			BootstrapServers: "localhost:9092",
