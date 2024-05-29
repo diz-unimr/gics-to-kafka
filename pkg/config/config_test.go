@@ -82,6 +82,10 @@ func TestConfigureLogger(t *testing.T) {
 
 	assert.True(t, slog.Default().Enabled(context.Background(), slog.LevelWarn))
 	assert.False(t, slog.Default().Enabled(context.Background(), slog.LevelInfo))
+
+	// invalid value defaults to info
+	ConfigureLogger(App{LogLevel: "test"})
+	assert.True(t, slog.Default().Enabled(context.Background(), slog.LevelInfo))
 }
 
 func setProjectDir() {
