@@ -154,7 +154,7 @@ func (s Server) handleNotification(c *gin.Context) {
 }
 
 func (d NotificationData) SignerId() *SignerId {
-	if len(d.ConsentKey.SignerIds) == 0 {
+	if d.ConsentKey == nil || len(d.ConsentKey.SignerIds) == 0 {
 		return nil
 	}
 
