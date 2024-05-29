@@ -1,7 +1,10 @@
 package config
 
 import (
+	"github.com/phsym/console-slog"
 	"github.com/spf13/viper"
+	"log/slog"
+	"os"
 	"strings"
 )
 
@@ -40,7 +43,7 @@ type Auth struct {
 	Password string `mapstructure:"password"`
 }
 
-func LoadConfig(path string) (config *AppConfig, err error) {
+func parseConfig(path string) (config *AppConfig, err error) {
 	viper.AddConfigPath(path)
 	viper.SetConfigName("app")
 	viper.SetConfigType("yml")
@@ -55,4 +58,26 @@ func LoadConfig(path string) (config *AppConfig, err error) {
 
 	err = viper.Unmarshal(&config)
 	return config, err
+}
+
+func LoadConfig() AppConfig {
+	c, err := parseConfig(".")
+	if err != nil {
+		slog.Error("Unable to load config file", "error", err)
+		os.Exit(1)
+	}
+	return *c
+}
+
+func ConfigureLogger(c App) {
+	lvl := new(slog.LevelVar)
+	lvl.Set(slog.LevelInfo)
+	logger := slog.New(console.NewHandler(os.Stderr, &console.HandlerOptions{Level: lvl}))
+	slog.SetDefault(logger)
+
+	// set configured log level
+	err := lvl.UnmarshalText([]byte(c.LogLevel))
+	if err != nil {
+		slog.Error("Unable to set Log level from application properties", "level", c.LogLevel, "error", err)
+	}
 }

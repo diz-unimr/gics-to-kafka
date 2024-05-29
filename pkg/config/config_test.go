@@ -1,36 +1,79 @@
 package config
 
 import (
+	"context"
 	"github.com/spf13/viper"
 	"github.com/stretchr/testify/assert"
+	"log/slog"
 	"os"
 	"path"
 	"runtime"
 	"testing"
 )
 
-func TestLoadConfigWithEnv(t *testing.T) {
+func TestConfigureLoggerSetsLogLevel(t *testing.T) {
+	setProjectDir()
+
+	expected := "debug"
+
+	ConfigureLogger(App{LogLevel: expected})
+
+	assert.True(t, slog.Default().Enabled(context.Background(), slog.LevelDebug))
+}
+
+func TestParseConfigWithEnv(t *testing.T) {
 	setProjectDir()
 
 	expected := "test"
 	t.Setenv("KAFKA_OUTPUT_TOPIC", expected)
 
-	config, _ := LoadConfig(".")
+	config, _ := parseConfig(".")
 
 	assert.Equal(t, expected, config.Kafka.OutputTopic)
 }
 
-func TestLoadConfigFileNotFound(t *testing.T) {
+func TestParseConfigFileNotFound(t *testing.T) {
 	setProjectDir()
 
 	// config file not found
-	_, err := LoadConfig("./bla")
+	_, err := parseConfig("./bla")
 
 	if assert.Error(t, err) {
 		_, isConfigError := err.(viper.ConfigFileNotFoundError)
 
 		assert.True(t, isConfigError)
 	}
+}
+
+func TestLoadDefaultConfig(t *testing.T) {
+
+	defaultConfig := AppConfig{
+		App: App{
+			Name:     "gics-to-kafka",
+			LogLevel: "info",
+			Http:     Http{Port: "8080"},
+		},
+		Kafka: Kafka{
+			BootstrapServers: "localhost:9092",
+			OutputTopic:      "gics-notification",
+			SecurityProtocol: "ssl",
+			Ssl: Ssl{
+				CaLocation:          "/app/cert/kafka-ca.pem",
+				CertificateLocation: "/app/cert/app-cert.pem",
+				KeyLocation:         "/app/cert/app-key.pem",
+			},
+		},
+	}
+	actual := LoadConfig()
+
+	assert.Equal(t, defaultConfig, actual)
+}
+
+func TestConfigureLogger(t *testing.T) {
+	ConfigureLogger(App{LogLevel: "warn"})
+
+	assert.True(t, slog.Default().Enabled(context.Background(), slog.LevelWarn))
+	assert.False(t, slog.Default().Enabled(context.Background(), slog.LevelInfo))
 }
 
 func setProjectDir() {

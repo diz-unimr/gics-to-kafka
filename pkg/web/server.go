@@ -8,7 +8,8 @@ import (
 	"gics-to-kafka/pkg/kafka"
 	cKafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
+	sloggin "github.com/samber/slog-gin"
+	"log/slog"
 	"net/http"
 	"sort"
 	"strings"
@@ -64,18 +65,18 @@ type Server struct {
 func (s Server) Run() {
 	r := s.setupRouter()
 
-	log.WithField("port", s.config.App.Http.Port).Info("Starting server")
+	slog.Info("Starting server", "port", s.config.App.Http.Port)
 	for _, v := range r.Routes() {
-		log.WithFields(log.Fields{"path": v.Path, "method": v.Method}).Info("Route configured")
+		slog.Info("Route configured", "path", v.Path, "method", v.Method)
 	}
 
-	log.Fatal(r.Run(":" + s.config.App.Http.Port))
+	slog.Error("Server run failed", "error", r.Run(":"+s.config.App.Http.Port))
 }
 
 func (s Server) setupRouter() *gin.Engine {
 	r := gin.New()
 	_ = r.SetTrustedProxies(nil)
-	r.Use(config.LoggingMiddleware(nil), gin.Recovery())
+	r.Use(sloggin.New(slog.Default()), gin.Recovery())
 
 	r.POST("/notification", gin.BasicAuth(gin.Accounts{
 		s.config.App.Http.Auth.User: s.config.App.Http.Auth.Password,
@@ -94,7 +95,7 @@ func (s Server) handleNotification(c *gin.Context) {
 	// bind to struct
 	var n Notification
 	if err := c.ShouldBindJSON(&n); err != nil {
-		log.WithError(err)
+		slog.Error("Failed to bind JSON", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
 		})
@@ -102,19 +103,16 @@ func (s Server) handleNotification(c *gin.Context) {
 	}
 
 	if n.ClientId == nil || n.Type == nil || n.Data == nil || n.CreatedAt == nil {
-		log.Error("Incomplete notification received")
+		slog.Error("Incomplete notification received")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Incomplete notification data"})
 		return
 	}
 
-	log.WithFields(log.Fields{"clientId": *n.ClientId, "type": *n.Type, "createdAt": *n.CreatedAt}).
-		Debug("Notification received")
-
-	log.WithField("payload", n).Trace("Received")
+	slog.Debug("Notification received", "clientId", *n.ClientId, "type", *n.Type, "createdAt", *n.CreatedAt)
 
 	if !strings.Contains(*n.ClientId, "gICS_") {
-		log.Error("Invalid 'clientId' property. Should be prefixed with: 'gICS_'")
+		slog.Error("Invalid 'clientId' property. Should be prefixed with: 'gICS_'")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Invalid or missing clientId"})
 		return
@@ -122,7 +120,7 @@ func (s Server) handleNotification(c *gin.Context) {
 
 	var d NotificationData
 	if err := json.Unmarshal([]byte(*n.Data), &d); err != nil {
-		log.WithError(err).Error("Failed to parse request body")
+		slog.Error("Failed to parse request body", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to parse request body"})
 		return
@@ -131,7 +129,7 @@ func (s Server) handleNotification(c *gin.Context) {
 	// get signer id
 	signerId := d.SignerId()
 	if signerId == nil {
-		log.Error("Request ist missing signerId type")
+		slog.Error("Request ist missing signerId type")
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to parse signerId",
 		})
@@ -144,15 +142,14 @@ func (s Server) handleNotification(c *gin.Context) {
 	e := <-listener
 	switch ev := e.(type) {
 	case cKafka.Error:
-		log.WithError(ev).
-			Error("Failed to send notification to Kafka")
+		slog.Error("Failed to send notification to Kafka", "error", ev)
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "Failed to send notification to Kafka",
 		})
 	case *cKafka.Message:
 		c.Status(http.StatusCreated)
 	default:
-		log.WithField("error", e).Error("Unexpected delivery response")
+		slog.Error("Unexpected delivery response", "error", e)
 	}
 }
 
