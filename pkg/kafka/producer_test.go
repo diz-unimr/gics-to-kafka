@@ -1,6 +1,7 @@
 package kafka
 
 import (
+	"gics-to-kafka/pkg/config"
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -28,6 +29,18 @@ func (t TestKafkaProducer) IsClosed() bool {
 
 func (t TestKafkaProducer) GetMetadata(_ *string, _ bool, _ int) (*kafka.Metadata, error) {
 	return &kafka.Metadata{}, nil
+}
+
+func TestNewProducer(t *testing.T) {
+	cfg := config.Kafka{
+		BootstrapServers: "",
+		OutputTopic:      "test-topic",
+		SecurityProtocol: "PLAINTEXT",
+		Ssl:              config.Ssl{},
+	}
+	p := NewProducer(cfg)
+
+	assert.Equal(t, cfg.OutputTopic, p.Topic)
 }
 
 func TestSend_Error(t *testing.T) {
