@@ -1,3 +1,5 @@
+---
 GO_GOLANGCI_LINT_ARGUMENTS: --timeout 10m
 GO_REVIVE_ARGUMENTS: -formatter friendly -config .revive.toml
 REPOSITORY_KICS_ARGUMENTS: --exclude-paths dev --fail-on high
+COPYPASTE_JSCPD_ARGUMENTS: -i "**/dev/**"
