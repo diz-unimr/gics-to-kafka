@@ -16,7 +16,7 @@ UPDATE `configuration` SET `value` =
                 <parameter>
                     <param>
                         <key>url</key>
-                        <value>http://gics-to-kafka:8080/notification</value>
+                        <value>http://host.docker.internal:8080/notification</value>
                     </param>
                     <param>
                         <key>username</key>

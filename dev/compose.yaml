@@ -49,8 +49,9 @@ services:
     restart: unless-stopped
     ports:
       - "127.0.0.1:3308:3306"
-    env_file:
-      - ./envs/mysql.env
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      TZ: Europe/Berlin
     volumes:
       - ./sqls:/docker-entrypoint-initdb.d
     command: --max_allowed_packet=20M --default-time-zone=Europe/Berlin
@@ -60,7 +61,7 @@ services:
     container_name: gics-wildfly
     restart: unless-stopped
     ports:
-      - "8080:8080"
+      - "8090:8080"
       - "127.0.0.1:9992:9990"
     extra_hosts:
       - "host.docker.internal:host-gateway"
