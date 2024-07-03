@@ -158,7 +158,7 @@ func (s Server) handleNotification(c *gin.Context) {
 		})
 	case *cKafka.Message:
 		if ev.TopicPartition.Error != nil {
-			slog.Error("Failed to deliver message", ev.TopicPartition.Error.Error())
+			slog.Error("Failed to deliver message", "error", ev.TopicPartition.Error.Error())
 			c.JSON(http.StatusBadGateway, gin.H{"error": "Failed to save message to Kafka topic"})
 		} else {
 			c.Status(http.StatusCreated)
