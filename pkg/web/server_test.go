@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"errors"
 	"gics-to-kafka/pkg/config"
 	cKafka "github.com/confluentinc/confluent-kafka-go/v2/kafka"
 	"github.com/stretchr/testify/assert"
@@ -71,8 +72,21 @@ func TestNotificationHandler(t *testing.T) {
 				"createdAt": "2023-06-05T12:09:10.463125126",
 				"data": "{\"type\":\"GICS.UpdateConsentInUse\",\"clientId\":\"gICS_Web\",\"consentKey\":{\"consentTemplateKey\":{\"domainName\":\"MII\",\"name\":\"Patienteneinwilligung MII\",\"version\":\"1.6.d\"},\"signerIds\":[{\"idType\":\"test\",\"name\":\"2\",\"creationDate\":\"2023-06-05 10:28:42\",\"orderNumber\":1}],\"consentDate\": \"2023-05-02 01:57:27\"}}"
 			}
-		`,
-			kafkaResponse: cKafka.Error{}},
+		`, kafkaResponse: cKafka.Error{},
+		},
+		{name: "notificationHandlerErrorMessage", statusCode: 502, body: `
+			{
+				"type": "GICS.AddConsent",
+				"clientId": "gICS_Web",
+				"createdAt": "2023-06-05T12:09:10.463125126",
+				"data": "{\"type\":\"GICS.UpdateConsentInUse\",\"clientId\":\"gICS_Web\",\"consentKey\":{\"consentTemplateKey\":{\"domainName\":\"MII\",\"name\":\"Patienteneinwilligung MII\",\"version\":\"1.6.d\"},\"signerIds\":[{\"idType\":\"test\",\"name\":\"error\",\"creationDate\":\"2023-06-05 10:28:42\",\"orderNumber\":1}],\"consentDate\": \"2023-05-02 01:57:27\"}}"
+			}
+		`, kafkaResponse: cKafka.Message{
+			TopicPartition: cKafka.TopicPartition{
+				Error: errors.New("failed to save message"),
+			},
+		},
+		},
 	}
 
 	for _, c := range cases {
