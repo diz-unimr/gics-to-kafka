@@ -1,6 +1,7 @@
 {
   "type": "GICS.AddConsent",
   "clientId": "gICS_Web",
+  "context": null,
   "consentKey": {
     "consentTemplateKey": {
       "domainName": "MII",

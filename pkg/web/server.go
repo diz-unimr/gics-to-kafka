@@ -44,7 +44,7 @@ type Context struct {
 }
 
 type NotificationData struct {
-	Context              *Context      `bson:"context json:context"`
+	Context              *Context      `bson:"context" json:"context"`
 	ConsentKey           *ConsentKey   `bson:"consentKey" json:"consentKey"`
 	PreviousPolicyStates []PolicyState `bson:"previousPolicyStates" json:"previousPolicyStates"`
 	CurrentPolicyStates  []PolicyState `bson:"currentPolicyStates" json:"currentPolicyStates"`
@@ -157,9 +157,15 @@ func (s Server) handleNotification(c *gin.Context) {
 			"error": "Failed to send notification to Kafka",
 		})
 	case *cKafka.Message:
-		c.Status(http.StatusCreated)
+		if ev.TopicPartition.Error != nil {
+			slog.Error("Failed to deliver message", ev.TopicPartition.Error.Error())
+			c.JSON(http.StatusBadGateway, gin.H{"error": "Failed to save message to Kafka topic"})
+		} else {
+			c.Status(http.StatusCreated)
+		}
 	default:
 		slog.Error("Unexpected delivery response", "error", e)
+		c.JSON(http.StatusBadGateway, gin.H{"error": "Failed to deliver message to Kafka"})
 	}
 }
 
