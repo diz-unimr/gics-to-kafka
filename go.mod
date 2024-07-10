@@ -3,7 +3,7 @@ module gics-to-kafka
 go 1.22
 
 require (
-	github.com/confluentinc/confluent-kafka-go/v2 v2.4.0
+	github.com/confluentinc/confluent-kafka-go/v2 v2.5.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/phsym/console-slog v0.3.1
 	github.com/samber/slog-gin v1.13.3
